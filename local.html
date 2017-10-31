@@ -8,10 +8,11 @@
 			html, body {
 				width: 100%;
 				height: 100%;
+
 			}
 
 			body {
-				background-color: #ffffff;
+				background-color:black;
 				margin: 0;
 				overflow: hidden;
 				font-family: arial;
@@ -56,27 +57,32 @@
 
 			}
 
+			#lines {
+				position: fixed;
+				z-index: -1;
+			}
+
 		</style>
 	</head>
 	<body>
 		<script src="../build/three.js"></script>
 		<script src="js/controls/PointerLockControls.js"></script>
+		<canvas id="lines"></canvas>
 
 		<div id="blocker">
-
 			<div id="instructions">
 				<span style="font-size:40px">Click to play</span>
 				<br />
 				(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
 			</div>
-
 		</div>
 
 		<script>
 
 			var camera, scene, renderer;
-			var geometry, material, mesh;
+			var geometry, material, floor;
 			var controls;
+			var clock, mixer;
 
 			var objects = [];
 
@@ -163,13 +169,15 @@
 
 			function init() {
 
+				clock = new THREE.Clock();
+
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0x000000 );
-				scene.fog = new THREE.Fog( 0x090909, 0, 750 );
+				//scene.background = new THREE.Color( 0x000000 );
+				//scene.fog = new THREE.Fog( 0x090909, 0, 750 );
 
-				var light = new THREE.HemisphereLight( 0x0000ff, 0x020202, 0.75 );
+				var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
 				light.position.set( 0.5, 1, 0.75 );
 				scene.add( light );
 
@@ -266,12 +274,30 @@
 
 				material = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } );
 
-				mesh = new THREE.Mesh( geometry, material );
-				scene.add( mesh );
+				floor = new THREE.Mesh( geometry, material );
+				scene.add( floor );
+
+				// blender
+				mixer = new THREE.AnimationMixer( scene );
+				var loader = new THREE.JSONLoader();
+				loader.load("models/char_no_talking.json", function(geometry, materials) {
+					var material = materials[0];
+					material.morphTargets = true;
+					material.color.setHex(0xffffff);
+					material.skinning = true;
+					var char = new THREE.SkinnedMesh(geometry, materials);
+					char.position.set(0, 10, -20);
+					char.scale.set(1,1,1);
+					mixer.clipAction(geometry.animations[2], char)
+						.play();
+					
+					scene.add(char);
+				});
 
 				//
 
-				renderer = new THREE.WebGLRenderer();
+				renderer = new THREE.WebGLRenderer( { alpha: true } );
+				renderer.setClearColor( 0x000000, 0 ); // the default
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
@@ -339,11 +365,20 @@
 					prevTime = time;
 
 				}
-
+				mixer.update( clock.getDelta() );
 				renderer.render( scene, camera );
 
 			}
 
+		</script>
+		
+		<script src="lines/lib/jquery.min.js"></script>
+		<script src="lines/lib/cool.js"></script>
+		<script src="lines/play/play.js"></script>
+		<script type="text/javascript">
+			window.addEventListener("load", function() {
+				loadAnimation("lines/play/ex.json");
+			});
 		</script>
 	</body>
 </html>
