@@ -1,115 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>new char</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="user-scalable=no, initial-scale=1">
-		<style>
-			body {
-				margin: 0px;
-				background-color: black;
-				overflow: hidden;
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>fark</title>
+    <style>
+		body {
+			margin: 0px;
+			background-color: #000000;
+			overflow: hidden;
+		}
+		#lines {
+			position: fixed;
+			display:none;
+			z-index: 1;
+		}
+		#blocker {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0,0,0,0.5);
+		}
+		#instructions {
+				width: 100%;
+				height: 100%;
+				padding: 3em 0;
+				font-size: 4em;
+				color: #ffffff;
+				text-align: center;
+				cursor: pointer;
 			}
-			#lines {
-				position: fixed;
-				z-index: -1;
-			}
-		</style>
-	</head>
-	<body>
-
-		<div id="container">
-			<canvas id="lines"></canvas>
+	</style>
+</head>
+<body>
+	<div id="blocker">
+		<div id="instructions">
+			Loading
 		</div>
-		
-		<script src="build/three.js"></script>
-		<script src="js/controls/DeviceOrientationControls.js"></script>
+	</div>
+    <div id="container">
+		<canvas id="lines"></canvas>
+	</div>
+	<audio id="music" autostart="0">
+		<source src="clips/theme_80.mp3" type="">
+	</audio>
+	<audio id="voice">
+		<source src="clips/silence.mp3" type="">
+	</audio>
 
-		<script>
+	<script src="../build/three.js"></script>
+	<script src="js/controls/DeviceOrientationControls.js"></script>
+	<script src="js/effects/OutlineEffect.js"></script>
 
-			var container, camera, scene, renderer, controls;
-			var clock, mixer;
+	<script src="js/char.js"></script>
 
-
-			init();
-			animate();
-
-			function init() {
-
-				clock = new THREE.Clock();
-
-				container = document.getElementById( 'container' );
-
-				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-
-				controls = new THREE.DeviceOrientationControls( camera );
-
-				scene = new THREE.Scene();
-				//scene.fog = new THREE.Fog( 0x090909, 0, 750 );
-				var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
-				light.position.set( 0.5, 1, 0.75 );
-				scene.add( light );
-
-				// blender
-
-				mixer = new THREE.AnimationMixer( scene );
-				var loader = new THREE.JSONLoader();
-				loader.load("models/char_no_talking.json", function(geometry, materials) {
-					var material = materials[0];
-					material.morphTargets = true;
-					material.color.setHex(0xffffff);
-					material.skinning = true;
-					var char = new THREE.SkinnedMesh(geometry, materials);
-					char.position.set(0, 10, -20);
-					char.scale.set(1,1,1);
-					mixer.clipAction(geometry.animations[2], char)
-						.play();
-					
-					scene.add(char);
-				});
-
-				//
-
-				renderer = new THREE.WebGLRenderer( { alpha: true } );
-				renderer.setClearColor( 0x000000, 0 ); // the default
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
-
-			}
-
-			function animate() {
-
-				window.requestAnimationFrame( animate );
-				mixer.update( clock.getDelta() );
-				controls.update();
-				renderer.render( scene, camera );
-
-			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-		</script>
-		<script src="lines/lib/jquery.min.js"></script>
-		<script src="lines/lib/cool.js"></script>
-		<script src="lines/play/play.js"></script>
-		<script type="text/javascript">
-			window.addEventListener("load", function() {
-				loadAnimation("lines/play/ex.json");
-			});
-		</script>
-
-	</body>
+	<script src="lines/lib/jquery.min.js"></script>
+	<script src="lines/lib/cool.js"></script>
+	<script src="lines/play/play.js"></script>
+</body>
 </html>
