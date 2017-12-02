@@ -57,7 +57,7 @@ var lines = document.getElementById('lines');
 var container, camera, scene, renderer, controls;
 var linesTexture; /* texture gets updated */
 var clock, mixer;
-var listener, voiceSound, audioLoader;
+var listener, voiceSound, voiceSource, audioLoader;
 
 let char;
 
@@ -150,12 +150,20 @@ function init() {
 			voice.play();
 			animate();
 			//playDialog();
-			time = performance.now() + 2000; /* beginning delay */
-			// audioLoader.load("clips/weird.mp3", function(buffer) {
-			// 	voiceSound.setBuffer(buffer);
-			// 	voiceSound.setRefDistance(10);
-			// 	voiceSound.play();
-			// });
+			time = performance.now() + 3000; /* beginning delay */
+			
+			/* 
+			audioLoader.load("clips/weird.mp3", function(buffer) {
+				voiceSound.setBuffer(buffer);
+				voiceSound.setRefDistance(10);
+				voiceSound.connect(voiceSound.context.destination);
+				// this fails because source doesn't exist
+				 	// source becomes part of voiceSound after play method
+				 	// https://github.com/mrdoob/three.js/issues/10404
+				 	// only thing not happening i tink is connect to speakers
+				voiceSound.play();
+			});
+			*/
 		}
 		instructions.addEventListener('touchstart', start, false );
 		instructions.addEventListener('click', start, false );
@@ -175,19 +183,12 @@ function animate() {
 			loadAnimation(dialog.anim);
 			voice.src = dialog.track;
 			voice.play();
-			// audioLoader.load(dialog.track, function(buffer) {
-			// 	voiceSound.stop();
-			// 	voiceSound.setBuffer(buffer);
-			// 	voiceSound.setRefDistance(20);
-			// 	voiceSound.play();
-			// });
 
 			mixer.stopAllAction();
 			const talk = talks[Math.floor(Math.random() * talks.length)];
 			mixer.clipAction(char.geometry.animations[talk], char).play();
-			voiceSound.onEnded = function() {
+			voice.addEventListener("ended", function() {
 				/* pause between scenes */
-				voiceSound.stop();
 				time = performance.now() + dialog.end;
 				nextClip = true;
 				const nextIndex = dialogs.indexOf(dialog) + 1;
@@ -203,7 +204,7 @@ function animate() {
 					char.xSpeed = 0;
 					char.zSpeed = 0;
 				}
-			};
+			});
 		} else {
 			dialog.start = 1;
 			time += dialog.delay;
