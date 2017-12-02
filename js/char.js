@@ -142,7 +142,7 @@ function init() {
 			.play();
 		scene.add(char);
 
-		instructions.textContent = "Click to start";
+		instructions.textContent = "Tap to start";
 		function start() {
 			blocker.style.display = 'none';
 			bkgMusic.loop = true;
