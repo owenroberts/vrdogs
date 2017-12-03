@@ -5,6 +5,7 @@ const bkgMusic = document.getElementById("music");
 bkgMusic.pause();
 bkgMusic.currentTime = 0;
 bkgMusic.volume = 0.75;
+var restart = false;
 
 var voice = document.getElementById("voice");
 voice.pause();
@@ -17,14 +18,14 @@ const talks = [2,3];
 const dialogs = [
 	{
 		track: "clips/weird.mp3",
-		anim: "drawings/mustard.json",
+		anim: "drawings/mustard_3.json",
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/afterlife.mp3",
 		anim: "drawings/clouds.json",
-		delay: 2000,
+		delay: 3000,
 		end: 2000
 	},
 	{
@@ -50,7 +51,6 @@ let currentDialog = 0;
 let time;
 let nextClip = true;
 
-const size = 1024;
 var width = window.innerWidth, height = window.innerHeight;
 var lines = document.getElementById('lines');
 
@@ -96,8 +96,9 @@ function init() {
 
 	/* outside lines */
 	linesTexture = new THREE.Texture(lines);
-	lines.width = lines.height = size;
-	var linesMaterial = new THREE.MeshBasicMaterial({ map: linesTexture });
+	lines.width =  1024;
+	lines.height = 1024;
+	var linesMaterial = new THREE.MeshBasicMaterial({ map: linesTexture, side: THREE.DoubleSide  });
 	var helperMaterial = new THREE.MeshBasicMaterial( { color: 0xff00ff, wireframe: true } );
 	var sz = 40;
 	var sides = [ /* relative x,y,z pos, rotation*/
@@ -110,6 +111,15 @@ function init() {
 		[1, 0, 0, 0, -Math.PI/2, 0], /* right face */
 		[-1,0, 0, 0, Math.PI/2, 0] /* left face */
 	];
+	
+	// var sphere = new THREE.Mesh( new THREE.SphereGeometry( 50, 20, 10 ), linesMaterial );
+	// sphere.position.set( 0, 0, 0 );
+	// scene.add( sphere );
+
+	// var cyl = new THREE.Mesh( new THREE.CylinderGeometry( 10, 10, 20, 16, 1, true ), linesMaterial );
+	// cyl.position.set( 0, -3, 0 );
+	// scene.add( cyl );
+
 	for (let i = 0; i < sides.length; i++) {
 		const side = sides[i];
 		const planeGeo = new THREE.PlaneGeometry( sz*2, sz*2, i + 1 );
@@ -144,11 +154,19 @@ function init() {
 
 		instructions.textContent = "Tap to start";
 		function start() {
-			blocker.style.display = 'none';
-			bkgMusic.loop = true;
+			console.log(restart);
+			if (restart) {
+				currentDialog = 0;
+				dialogs.map((d) => d.start = 0);
+				nextClip = true;
+			} else {
+				voice.play();
+				animate();
+				bkgMusic.loop = true;
+			}
 			bkgMusic.play();
-			voice.play();
-			animate();
+			blocker.style.display = 'none';
+			
 			//playDialog();
 			time = performance.now() + 3000; /* beginning delay */
 			
@@ -196,8 +214,11 @@ function animate() {
 					currentDialog = nextIndex;
 				} else {
 					/* its over */
+					restart = true;
+					bkgMusic.pause();
 					blocker.style.display = 'block';
 					instructions.textContent = "The end";
+					document.getElementById("headphones").textContent = "Tap to reload";
 					nextClip = false;
 					mixer.stopAllAction();
 					mixer.clipAction(char.geometry.animations[5], char).play();
