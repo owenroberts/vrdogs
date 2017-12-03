@@ -83,6 +83,7 @@ function init() {
 	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
 	controls = new THREE.DeviceOrientationControls( camera );
 	camera.position.z = 5;
+	camera.ySpeed = 0;
 
 	listener = new THREE.AudioListener();
 	camera.add(listener);
@@ -128,10 +129,10 @@ function init() {
 		planeMesh.rotation.set( side[3], side[4], side[5] );
 		scene.add( planeMesh );
 		// helper 
-			//const helper = new THREE.Mesh( planeGeo, helperMaterial );
-			//helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
-			//helper.rotation.set( side[3], side[4], side[5] );
-			//scene.add( helper );
+			const helper = new THREE.Mesh( planeGeo, helperMaterial );
+			helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
+			helper.rotation.set( side[3], side[4], side[5] );
+			scene.add( helper );
 	}
 
 	/* blender */
@@ -152,9 +153,8 @@ function init() {
 			.play();
 		scene.add(char);
 
-		instructions.textContent = "Tap to start";
+		instructions.textContent = "Tap to play";
 		function start() {
-			console.log(restart);
 			if (restart) {
 				currentDialog = 0;
 				dialogs.map((d) => d.start = 0);
@@ -198,6 +198,8 @@ function animate() {
 			nextClip = false;
 			char.xSpeed = 0;
 			char.zSpeed = 0;
+			camera.ySpeed = getRandom(-0.001, 0.001);
+			console.log(dialog.anim);
 			loadAnimation(dialog.anim);
 			voice.src = dialog.track;
 			voice.play();
@@ -218,7 +220,7 @@ function animate() {
 					bkgMusic.pause();
 					blocker.style.display = 'block';
 					instructions.textContent = "The end";
-					document.getElementById("headphones").textContent = "Tap to reload";
+					document.getElementById("headphones").textContent = "Tap to play again";
 					nextClip = false;
 					mixer.stopAllAction();
 					mixer.clipAction(char.geometry.animations[5], char).play();
@@ -234,6 +236,7 @@ function animate() {
 			mixer.clipAction(char.geometry.animations[walk], char).play();
 			char.xSpeed = getRandom(-0.02, 0.02);
 			char.zSpeed = getRandom(0, 0.03);
+			camera.ySpeed = 0;
 			const vec = new THREE.Vector3(
 				char.position.x + char.xSpeed, 
 				char.position.y,
@@ -248,6 +251,7 @@ function animate() {
     mixer.update( clock.getDelta() );
     char.position.x += char.xSpeed;
     char.position.z += char.zSpeed;
+    camera.position.y += camera.ySpeed;
     controls.update();
    	// renderer.render(scene, camera);
    	effect.render( scene, camera );
