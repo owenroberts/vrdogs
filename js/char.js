@@ -5,6 +5,13 @@ const bkgMusic = document.getElementById("music");
 bkgMusic.pause();
 bkgMusic.currentTime = 0;
 bkgMusic.volume = 0.75;
+
+// const loopMusic = document.getElementById("loop");
+// loopMusic.pause();
+// loopMusic.currentTime = 0;
+// loopMusic.volume = 0.1;
+
+
 var restart = false;
 
 var voice = document.getElementById("voice");
@@ -24,7 +31,7 @@ const dialogs = [
 	},
 	{
 		track: "clips/afterlife.mp3",
-		anim: "drawings/clouds.json",
+		anim: "drawings/hotdog_angel.json",
 		delay: 3000,
 		end: 2000
 	},
@@ -36,7 +43,7 @@ const dialogs = [
 	},
 	{
 		track: "clips/sinners.mp3",
-		anim: "drawings/heavenhell.json",
+		anim: "drawings/hell_hotdog.json",
 		delay: 2000,
 		end: 2000
 	},
@@ -163,8 +170,12 @@ function init() {
 				voice.play();
 				animate();
 				bkgMusic.loop = true;
+				// loopMusic.loop = true;
 			}
 			bkgMusic.play();
+			// loopMusic.play();
+			// loopMusic.pause();
+			// loopMusic.currentTime = 0;
 			blocker.style.display = 'none';
 			
 			//playDialog();
@@ -202,12 +213,16 @@ function animate() {
 			loadAnimation(dialog.anim);
 			voice.src = dialog.track;
 			voice.play();
+			// bkgMusic.pause();
+			// loopMusic.play();
 
 			mixer.stopAllAction();
 			const talk = talks[Math.floor(Math.random() * talks.length)];
 			mixer.clipAction(char.geometry.animations[talk], char).play();
 			voice.addEventListener("ended", function() {
 				/* pause between scenes */
+				// loopMusic.pause();
+				// bkgMusic.play();
 				time = performance.now() + dialog.end;
 				nextClip = true;
 				const nextIndex = dialogs.indexOf(dialog) + 1;
@@ -217,6 +232,7 @@ function animate() {
 					/* its over */
 					restart = true;
 					bkgMusic.pause();
+					// loopMusic.pause();
 					blocker.style.display = 'block';
 					instructions.textContent = "The end";
 					document.getElementById("headphones").textContent = "Tap to play again";
