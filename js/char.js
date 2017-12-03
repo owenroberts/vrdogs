@@ -129,10 +129,10 @@ function init() {
 		planeMesh.rotation.set( side[3], side[4], side[5] );
 		scene.add( planeMesh );
 		// helper 
-			const helper = new THREE.Mesh( planeGeo, helperMaterial );
-			helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
-			helper.rotation.set( side[3], side[4], side[5] );
-			scene.add( helper );
+			// const helper = new THREE.Mesh( planeGeo, helperMaterial );
+			// helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
+			// helper.rotation.set( side[3], side[4], side[5] );
+			// scene.add( helper );
 	}
 
 	/* blender */
@@ -192,7 +192,7 @@ function init() {
 /* 0: delay, 1: play, 2: end */
 function animate() {
 	/* audio clips */
-	if (performance.now() > time && nextClip) {
+	// if (performance.now() > time && nextClip) {
 		let dialog = dialogs[currentDialog];
 		if (dialog.start == 1) {
 			nextClip = false;
