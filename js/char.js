@@ -192,14 +192,13 @@ function init() {
 /* 0: delay, 1: play, 2: end */
 function animate() {
 	/* audio clips */
-	// if (performance.now() > time && nextClip) {
+	if (performance.now() > time && nextClip) {
 		let dialog = dialogs[currentDialog];
 		if (dialog.start == 1) {
 			nextClip = false;
 			char.xSpeed = 0;
 			char.zSpeed = 0;
 			camera.ySpeed = getRandom(-0.001, 0.001);
-			console.log(dialog.anim);
 			loadAnimation(dialog.anim);
 			voice.src = dialog.track;
 			voice.play();
