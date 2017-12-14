@@ -14,7 +14,6 @@
 	<script>
 
 		var container, camera, scene, renderer, controls;
-		var listener, voiceSound, voiceSource, audioLoader;
 		var sphere;
 		var width = window.innerWidth, height = window.innerHeight;
 
@@ -36,10 +35,10 @@
 			light.position.set( 0.5, 1, 0.75 );
 			scene.add( light );
 
-			listener = new THREE.AudioListener();
+			var listener = new THREE.AudioListener();
 			camera.add(listener);
-			sound = new THREE.PositionalAudio(listener);
-			audioLoader = new THREE.AudioLoader();
+			var sound = new THREE.PositionalAudio(listener);
+			var audioLoader = new THREE.AudioLoader();
 
 			var material = new THREE.MeshPhongMaterial( { color: 0x22aaff } );
 			sphere = new THREE.Mesh( new THREE.SphereGeometry( 25, 20, 10 ), material );
