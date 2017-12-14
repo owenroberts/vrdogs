@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+	<title>fark</title>
+	<style>
+		body { margin: 0;  }
+	</style>
+</head>
+<body>
+
+	<script src="../build/three.js"></script>
+	<script>
+
+		var container, camera, scene, renderer, controls;
+		var listener, voiceSound, voiceSource, audioLoader;
+		var sphere;
+		var width = window.innerWidth, height = window.innerHeight;
+
+		init();
+		animate();
+
+		function init() {
+			scene = new THREE.Scene();
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(width, height);
+    		renderer.setPixelRatio( window.devicePixelRatio );
+    		document.body.appendChild(renderer.domElement);
+
+    		camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
+    		camera.position.z = 50;
+			camera.ySpeed = 1;
+
+			var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
+			light.position.set( 0.5, 1, 0.75 );
+			scene.add( light );
+
+			listener = new THREE.AudioListener();
+			camera.add(listener);
+			voiceSound = new THREE.PositionalAudio(listener);
+			audioLoader = new THREE.AudioLoader();
+
+			
+
+			var material = new THREE.MeshPhongMaterial( { color: 0x22aaff } );
+			sphere = new THREE.Mesh( new THREE.SphereGeometry( 25, 20, 10 ), material );
+			sphere.position.set( 0, 0, 0 );
+			sphere.xSpeed = 1;
+			sphere.add(voiceSound);
+			scene.add( sphere );
+
+
+			function playSound() {
+
+				audioLoader.load("../clips/theme_80.mp3", function(buffer) {
+					voiceSound.setBuffer( buffer );
+					voiceSound.setRefDistance( 20 );
+					console.log(voiceSound);
+					voiceSound.play();
+				});
+
+				// var testListener = new THREE.AudioListener();
+				// camera.add( testListener );
+
+				// var testSound = new THREE.Audio( testListener );
+				// var testLoader = new THREE.AudioLoader();
+				// 	testLoader.load( "../clips/theme_80.mp3", function( buffer ) {
+				// 	testSound.setBuffer( buffer );
+				// 	testSound.setVolume(1);
+				// 	testSound.play();
+				// 	console.log(testSound);
+				// });
+
+				// create empty buffer
+				//var buffer = audioCtx.createBuffer(1, 1, 22050);
+				var sound = new Audio("../clips/weird.mp3");
+				//var source = audioCtx.createMediaElementSource(sound);
+				//source.buffer = buffer;
+				//sound.play();
+
+				//var buffer = listener.context.createBuffer(1, 1, 22050);
+				var source = listener.context.createBufferSource();
+				//source.buffer = buffer;
+
+				// connect to output (your speakers)
+				source.connect(listener.context.destination);
+
+				// play the file
+				source.start();
+			}
+			window.addEventListener('touchstart', playSound);
+			document.addEventListener('click', playSound);
+
+			
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+   			sphere.position.x += sphere.xSpeed;
+   			if (sphere.position.x > 100 || sphere.position.x < -100) {
+   				sphere.xSpeed *= -1;
+   			}
+   			camera.position.y += camera.ySpeed;
+   			if (camera.position.y > 50 || camera.position.y < -50) {
+   				camera.ySpeed *= -1;
+   			}
+   			
+   			renderer.render(scene, camera);
+		}
+	</script>
+</body>
+</html>
