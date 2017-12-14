@@ -10,7 +10,7 @@
 </head>
 <body>
 
-	<script src="../build/three.js"></script>
+	<script src="build/three.js"></script>
 	<script>
 
 		var container, camera, scene, renderer, controls;
@@ -38,55 +38,26 @@
 
 			listener = new THREE.AudioListener();
 			camera.add(listener);
-			voiceSound = new THREE.PositionalAudio(listener);
+			sound = new THREE.PositionalAudio(listener);
 			audioLoader = new THREE.AudioLoader();
-
-			
 
 			var material = new THREE.MeshPhongMaterial( { color: 0x22aaff } );
 			sphere = new THREE.Mesh( new THREE.SphereGeometry( 25, 20, 10 ), material );
 			sphere.position.set( 0, 0, 0 );
 			sphere.xSpeed = 1;
-			sphere.add(voiceSound);
+			sphere.add(sound);
 			scene.add( sphere );
-
 
 			function playSound() {
 
 				audioLoader.load("../clips/theme_80.mp3", function(buffer) {
-					voiceSound.setBuffer( buffer );
-					voiceSound.setRefDistance( 20 );
-					console.log(voiceSound);
-					voiceSound.play();
+					sound.setBuffer( buffer );
+					sound.setRefDistance( 20 );
+					sound.play();
 				});
 
-				// var testListener = new THREE.AudioListener();
-				// camera.add( testListener );
-
-				// var testSound = new THREE.Audio( testListener );
-				// var testLoader = new THREE.AudioLoader();
-				// 	testLoader.load( "../clips/theme_80.mp3", function( buffer ) {
-				// 	testSound.setBuffer( buffer );
-				// 	testSound.setVolume(1);
-				// 	testSound.play();
-				// 	console.log(testSound);
-				// });
-
-				// create empty buffer
-				//var buffer = audioCtx.createBuffer(1, 1, 22050);
-				var sound = new Audio("../clips/weird.mp3");
-				//var source = audioCtx.createMediaElementSource(sound);
-				//source.buffer = buffer;
-				//sound.play();
-
-				//var buffer = listener.context.createBuffer(1, 1, 22050);
 				var source = listener.context.createBufferSource();
-				//source.buffer = buffer;
-
-				// connect to output (your speakers)
 				source.connect(listener.context.destination);
-
-				// play the file
 				source.start();
 			}
 			window.addEventListener('touchstart', playSound);
