@@ -6,12 +6,6 @@ bkgMusic.pause();
 bkgMusic.currentTime = 0;
 bkgMusic.volume = 0.75;
 
-// const loopMusic = document.getElementById("loop");
-// loopMusic.pause();
-// loopMusic.currentTime = 0;
-// loopMusic.volume = 0.1;
-
-
 var restart = false;
 
 var voice = document.getElementById("voice");
@@ -22,34 +16,48 @@ const idles = [0,5];
 const walks = [7,8];
 const talks = [2,3];
 
+/* sides 
+0 front 
+1 back 
+2 top 
+3 bottom 
+4 right 
+5 left*/
+
+
 const dialogs = [
 	{
 		track: "clips/weird.mp3",
 		anim: "drawings/mustard_3.json",
+		side: 0,
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/afterlife.mp3",
 		anim: "drawings/hotdog_angel.json",
+		side: 4,
 		delay: 3000,
 		end: 2000
 	},
 	{
 		track: "clips/imagination.mp3",
 		anim: "drawings/liens.json",
+		side: 3,
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/sinners.mp3",
 		anim: "drawings/hell_hotdog.json",
+		side:5,
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/blacksky.mp3",
 		anim: "drawings/moon.json",
+		side: 2,
 		delay: 2000,
 		end: 2000
 	}
@@ -58,11 +66,17 @@ let currentDialog = 0;
 let time;
 let nextClip = true;
 
-var width = window.innerWidth, height = window.innerHeight;
+let width = window.innerWidth, height = window.innerHeight;
 var lines = document.getElementById('lines');
+let canvases = [];
+for (let i = 0; i < 6; i++) {
+	const canvas = document.createElement("canvas");
+	lines.appendChild(canvas);
+	canvases.push(canvas);
+}
 
-var container, camera, scene, renderer, controls;
-var linesTexture; /* texture gets updated */
+var camera, scene, renderer, controls;
+var linesTextures = []; /* texture gets updated */
 var clock, mixer;
 var listener, voiceSound, voiceSource, audioLoader;
 
@@ -71,7 +85,6 @@ let char;
 init();
 
 function init() {
-	container = document.getElementById( 'container' );
 
 	clock = new THREE.Clock();
 	scene = new THREE.Scene();
@@ -92,24 +105,18 @@ function init() {
 	camera.position.z = 5;
 	camera.ySpeed = 0;
 
-	listener = new THREE.AudioListener();
-	camera.add(listener);
-	audioLoader = new THREE.AudioLoader();
-	voiceSound = new THREE.PositionalAudio(listener);
-
-	// var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
-	// light.position.set( 0.5, 1, 0.75 );
-	// scene.add( light );
-	//scene.add( group );
-
 	/* outside lines */
-	linesTexture = new THREE.Texture(lines);
-	lines.width =  1024;
-	lines.height = 1024;
-	var linesMaterial = new THREE.MeshBasicMaterial({ map: linesTexture, side: THREE.DoubleSide  });
-	var helperMaterial = new THREE.MeshBasicMaterial( { color: 0xff00ff, wireframe: true } );
-	var sz = 40;
-	var sides = [ /* relative x,y,z pos, rotation*/
+	const linesMaterials = [];
+	canvases.map((canvas) => {
+		canvas.width =  1024;
+		canvas.height = 1024;
+		const tex = new THREE.Texture(canvas)
+		linesTextures.push(tex);
+		linesMaterials.push(new THREE.MeshBasicMaterial({map:tex, side: THREE.DoubleSide}));
+	});
+	
+	const sz = 40;
+	const sides = [ /* relative x,y,z pos, rotation*/
 		[0, 0,-1, 0, 0, 0], /* front face */
 		[0, 0, 1, 0, Math.PI, 0], /* back face */
 		
@@ -119,28 +126,21 @@ function init() {
 		[1, 0, 0, 0, -Math.PI/2, 0], /* right face */
 		[-1,0, 0, 0, Math.PI/2, 0] /* left face */
 	];
-	
-	// var sphere = new THREE.Mesh( new THREE.SphereGeometry( 50, 20, 10 ), linesMaterial );
-	// sphere.position.set( 0, 0, 0 );
-	// scene.add( sphere );
-
-	// var cyl = new THREE.Mesh( new THREE.CylinderGeometry( 10, 10, 20, 16, 1, true ), linesMaterial );
-	// cyl.position.set( 0, -3, 0 );
-	// scene.add( cyl );
 
 	for (let i = 0; i < sides.length; i++) {
 		const side = sides[i];
 		const planeGeo = new THREE.PlaneGeometry( sz*2, sz*2, i + 1 );
-		const planeMesh = new THREE.Mesh( planeGeo, linesMaterial );
+		const planeMesh = new THREE.Mesh( planeGeo, linesMaterials[i] );
 		planeMesh.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
 		planeMesh.rotation.set( side[3], side[4], side[5] );
 		scene.add( planeMesh );
-		// helper 
-			// const helper = new THREE.Mesh( planeGeo, helperMaterial );
-			// helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
-			// helper.rotation.set( side[3], side[4], side[5] );
-			// scene.add( helper );
+		
 	}
+
+	listener = new THREE.AudioListener();
+	camera.add(listener);
+	audioLoader = new THREE.AudioLoader();
+	voiceSound = new THREE.PositionalAudio(listener);
 
 	/* blender */
 	mixer = new THREE.AnimationMixer( scene );
@@ -167,32 +167,19 @@ function init() {
 				dialogs.map((d) => d.start = 0);
 				nextClip = true;
 			} else {
-				voice.play();
 				animate();
 				bkgMusic.loop = true;
-				// loopMusic.loop = true;
 			}
 			bkgMusic.play();
-			// loopMusic.play();
-			// loopMusic.pause();
-			// loopMusic.currentTime = 0;
+
 			blocker.style.display = 'none';
 			
-			//playDialog();
 			time = performance.now() + 3000; /* beginning delay */
-			
-			/* 
-			audioLoader.load("clips/weird.mp3", function(buffer) {
-				voiceSound.setBuffer(buffer);
-				voiceSound.setRefDistance(10);
-				voiceSound.connect(voiceSound.context.destination);
-				// this fails because source doesn't exist
-				 	// source becomes part of voiceSound after play method
-				 	// https://github.com/mrdoob/three.js/issues/10404
-				 	// only thing not happening i tink is connect to speakers
-				voiceSound.play();
-			});
-			*/
+
+			/* for mobile to work  */
+			const source = listener.context.createBufferSource();
+			source.connect(listener.context.destination);
+			source.start();
 		}
 		instructions.addEventListener('touchstart', start, false );
 		instructions.addEventListener('click', start, false );
@@ -210,19 +197,19 @@ function animate() {
 			char.xSpeed = 0;
 			char.zSpeed = 0;
 			camera.ySpeed = getRandom(-0.001, 0.001);
-			loadAnimation(dialog.anim);
-			voice.src = dialog.track;
-			voice.play();
-			// bkgMusic.pause();
-			// loopMusic.play();
+			const p = new LinesPlayer(dialog.anim, canvases[dialog.side]);
+			audioLoader.load( dialog.track, function(buffer) {
+				voiceSound.setBuffer(buffer);
+				voiceSound.setRefDistance(20);
+				voiceSound.play();
+			});
 
 			mixer.stopAllAction();
 			const talk = talks[Math.floor(Math.random() * talks.length)];
 			mixer.clipAction(char.geometry.animations[talk], char).play();
-			voice.addEventListener("ended", function() {
-				/* pause between scenes */
-				// loopMusic.pause();
-				// bkgMusic.play();
+			// https://stackoverflow.com/questions/35323062/detect-sound-is-ended-in-three-positionalaudio
+			voiceSound.onEnded = function() {
+				voiceSound.isPlaying = false;
 				time = performance.now() + dialog.end;
 				nextClip = true;
 				const nextIndex = dialogs.indexOf(dialog) + 1;
@@ -232,7 +219,6 @@ function animate() {
 					/* its over */
 					restart = true;
 					bkgMusic.pause();
-					// loopMusic.pause();
 					blocker.style.display = 'block';
 					instructions.textContent = "The end";
 					document.getElementById("headphones").textContent = "Tap to play again";
@@ -242,7 +228,7 @@ function animate() {
 					char.xSpeed = 0;
 					char.zSpeed = 0;
 				}
-			});
+			};
 		} else {
 			dialog.start = 1;
 			time += dialog.delay;
@@ -262,7 +248,7 @@ function animate() {
 	}
 
     requestAnimationFrame(animate);
-    linesTexture.needsUpdate = true;
+    linesTextures.map((tex) => tex.needsUpdate = true);
     mixer.update( clock.getDelta() );
     char.position.x += char.xSpeed;
     char.position.z += char.zSpeed;
@@ -271,3 +257,26 @@ function animate() {
    	// renderer.render(scene, camera);
    	effect.render( scene, camera );
 }
+
+/* old crap */
+
+	// const helperMaterial = new THREE.MeshBasicMaterial( { color: 0xff00ff, wireframe: true } );
+// helper 
+	// const helper = new THREE.Mesh( planeGeo, helperMaterial );
+	// helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
+	// helper.rotation.set( side[3], side[4], side[5] );
+	// scene.add( helper );
+
+	// var sphere = new THREE.Mesh( new THREE.SphereGeometry( 50, 20, 10 ), linesMaterial );
+	// sphere.position.set( 0, 0, 0 );
+	// scene.add( sphere );
+
+	// var cyl = new THREE.Mesh( new THREE.CylinderGeometry( 10, 10, 20, 16, 1, true ), linesMaterial );
+	// cyl.position.set( 0, -3, 0 );
+	// scene.add( cyl );
+
+
+	// var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
+	// light.position.set( 0.5, 1, 0.75 );
+	// scene.add( light );
+	// scene.add( group );
