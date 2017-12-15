@@ -8,56 +8,44 @@ bkgMusic.volume = 0.75;
 
 var restart = false;
 
-var voice = document.getElementById("voice");
-voice.pause();
-voice.currentTime = 0;
-
 const idles = [0,5];
 const walks = [7,8];
 const talks = [2,3];
 
-/* sides 
-0 front 
-1 back 
-2 top 
-3 bottom 
-4 right 
-5 left*/
-
-
+/* sides  0 front  1 back  2 top  3 bottom  4 right  5 left*/
 const dialogs = [
 	{
 		track: "clips/weird.mp3",
 		anim: "drawings/mustard_3.json",
-		side: 0,
+		sides: [0],
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/afterlife.mp3",
 		anim: "drawings/hotdog_angel.json",
-		side: 4,
+		sides: [0, 4, 5],
 		delay: 3000,
 		end: 2000
 	},
 	{
 		track: "clips/imagination.mp3",
 		anim: "drawings/liens.json",
-		side: 3,
+		sides: [3],
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/sinners.mp3",
 		anim: "drawings/hell_hotdog.json",
-		side:5,
+		sides: [0, 1, 4, 5],
 		delay: 2000,
 		end: 2000
 	},
 	{
 		track: "clips/blacksky.mp3",
 		anim: "drawings/moon.json",
-		side: 2,
+		sides: [0, 1, 2, 4, 5],
 		delay: 2000,
 		end: 2000
 	}
@@ -68,15 +56,11 @@ let nextClip = true;
 
 let width = window.innerWidth, height = window.innerHeight;
 var lines = document.getElementById('lines');
-let canvases = [];
-for (let i = 0; i < 6; i++) {
-	const canvas = document.createElement("canvas");
-	lines.appendChild(canvas);
-	canvases.push(canvas);
-}
+var linesPlayer = new LinesPlayer(lines);
+var planes = [];
 
 var camera, scene, renderer, controls;
-var linesTextures = []; /* texture gets updated */
+var linesTexture; /* texture gets updated */
 var clock, mixer;
 var listener, voiceSound, voiceSource, audioLoader;
 
@@ -106,15 +90,12 @@ function init() {
 	camera.ySpeed = 0;
 
 	/* outside lines */
-	const linesMaterials = [];
-	canvases.map((canvas) => {
-		canvas.width =  1024;
-		canvas.height = 1024;
-		const tex = new THREE.Texture(canvas)
-		linesTextures.push(tex);
-		linesMaterials.push(new THREE.MeshBasicMaterial({map:tex, side: THREE.DoubleSide}));
-	});
 	
+
+	lines.width =  1024;
+	lines.height = 1024;
+	linesTexture = new THREE.Texture(lines);
+	const linesMaterial = new THREE.MeshBasicMaterial({map:linesTexture, side: THREE.DoubleSide});
 	const sz = 40;
 	const sides = [ /* relative x,y,z pos, rotation*/
 		[0, 0,-1, 0, 0, 0], /* front face */
@@ -130,10 +111,11 @@ function init() {
 	for (let i = 0; i < sides.length; i++) {
 		const side = sides[i];
 		const planeGeo = new THREE.PlaneGeometry( sz*2, sz*2, i + 1 );
-		const planeMesh = new THREE.Mesh( planeGeo, linesMaterials[i] );
+		const planeMesh = new THREE.Mesh( planeGeo, linesMaterial );
 		planeMesh.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
 		planeMesh.rotation.set( side[3], side[4], side[5] );
 		scene.add( planeMesh );
+		planes.push(planeMesh);
 		
 	}
 
@@ -197,7 +179,10 @@ function animate() {
 			char.xSpeed = 0;
 			char.zSpeed = 0;
 			camera.ySpeed = getRandom(-0.001, 0.001);
-			const p = new LinesPlayer(dialog.anim, canvases[dialog.side]);
+			linesPlayer.loadAnimation(dialog.anim, function() {
+				// turn on dialog.sides, off others
+				planes.map((p, i) => dialog.sides.indexOf(i) != -1 ? p.visible = true : p.visible = false);
+			});
 			audioLoader.load( dialog.track, function(buffer) {
 				voiceSound.setBuffer(buffer);
 				voiceSound.setRefDistance(20);
@@ -248,7 +233,7 @@ function animate() {
 	}
 
     requestAnimationFrame(animate);
-    linesTextures.map((tex) => tex.needsUpdate = true);
+    linesTexture.needsUpdate = true;
     mixer.update( clock.getDelta() );
     char.position.x += char.xSpeed;
     char.position.z += char.zSpeed;
