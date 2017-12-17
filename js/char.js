@@ -8,47 +8,36 @@ bkgMusic.volume = 0.75;
 
 var restart = false;
 
-const idles = [0,5];
-const walks = [7,8];
-const talks = [2,3];
+const idles = [0,2,3,9];
+const walks = [11,12];
+const talks = [4,5,6,7];
 
 /* sides  0 front  1 back  2 top  3 bottom  4 right  5 left*/
 const dialogs = [
-	{
-		track: "clips/weird.mp3",
-		anim: "drawings/mustard_3.json",
-		sides: [0],
-		delay: 2000,
-		end: 2000
-	},
-	{
-		track: "clips/afterlife.mp3",
-		anim: "drawings/hotdog_angel.json",
-		sides: [0, 4, 5],
-		delay: 3000,
-		end: 2000
-	},
-	{
-		track: "clips/imagination.mp3",
-		anim: "drawings/liens.json",
-		sides: [3],
-		delay: 2000,
-		end: 2000
-	},
-	{
-		track: "clips/sinners.mp3",
-		anim: "drawings/hell_hotdog.json",
-		sides: [0, 1, 4, 5],
-		delay: 2000,
-		end: 2000
-	},
-	{
-		track: "clips/blacksky.mp3",
-		anim: "drawings/moon.json",
-		sides: [0, 1, 2, 4, 5],
-		delay: 2000,
-		end: 2000
-	}
+	{ track: "clips/0.mp3",	 anim: "drawings/beach.json", sides: [0,1,4,5], delay: 6000, end: 2000 },
+	{ track: "clips/1.mp3",	 anim: "drawings/get_a_dog.json", sides: [0, 1, 4, 5], delay: 3000, end: 2000 },
+	{ track: "clips/2.mp3",	 anim: "drawings/jesus_windows.json", sides: [0, 1], delay: 2000, end: 2000 },
+	{ track: "clips/3.mp3",	 anim: "drawings/heavenhell.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000},
+	{ track: "clips/4.mp3",	 anim: "drawings/liens.json", sides: [3], delay: 2000, end: 2000 },
+	{ track: "clips/5.mp3",	 anim: "drawings/mustard_3.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/6.mp3",	 anim: "drawings/hotdog_angel.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/7.mp3",	 anim: "drawings/dogs_2.json", sides: [0, 1, 3, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/8.mp3",	 anim: "drawings/big_dogs.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/9.mp3",	 anim: "drawings/moon.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/10.mp3", anim: "drawings/cracks.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/11.mp3", anim: "drawings/city.json", sides: [0, 1, 3, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/12.mp3", anim: "drawings/drive.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/13.mp3", anim: "drawings/woods.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/14.mp3", anim: "drawings/tramp.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/15.mp3", anim: "drawings/hiding_cats.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/16.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/17.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/18.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/19.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/20.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/21.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/22.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/23.mp3", anim: "drawings/.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 }
 ];
 let currentDialog = 0;
 let time;
@@ -138,7 +127,7 @@ function init() {
 		char.xSpeed = 0;
 		char.zSpeed = 0;
 		char.add(voiceSound);
-		mixer.clipAction(geometry.animations[5], char)
+		mixer.clipAction(geometry.animations[9], char)
 			.play();
 		scene.add(char);
 
@@ -158,12 +147,17 @@ function init() {
 			
 			time = performance.now() + 3000; /* beginning delay */
 
+			linesPlayer.loadAnimation("drawings/empty.json", function() {
+				// turn on dialog.sides, off others
+				planes.map((p, i) => [0,1,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
+			});
+
 			/* for mobile to work  */
 			const source = listener.context.createBufferSource();
 			source.connect(listener.context.destination);
 			source.start();
 		}
-		instructions.addEventListener('touchstart', start, false );
+		instructions.addEventListener('touchend', start, false );
 		instructions.addEventListener('click', start, false );
 			
 	});
@@ -209,7 +203,7 @@ function animate() {
 					document.getElementById("headphones").textContent = "Tap to play again";
 					nextClip = false;
 					mixer.stopAllAction();
-					mixer.clipAction(char.geometry.animations[5], char).play();
+					mixer.clipAction(char.geometry.animations[3], char).play();
 					char.xSpeed = 0;
 					char.zSpeed = 0;
 				}
