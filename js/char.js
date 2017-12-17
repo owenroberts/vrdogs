@@ -212,17 +212,31 @@ function animate() {
 			dialog.start = 1;
 			time += dialog.delay;
 			mixer.stopAllAction();
-			const walk = walks[Math.floor(Math.random() * walks.length)];
-			mixer.clipAction(char.geometry.animations[walk], char).play();
-			char.xSpeed = getRandom(-0.02, 0.02);
-			char.zSpeed = getRandom(0, 0.03);
-			camera.ySpeed = 0;
-			const vec = new THREE.Vector3(
-				char.position.x + char.xSpeed, 
-				char.position.y,
-				char.position.z + char.zSpeed
-			);
-			char.lookAt(vec);
+			
+
+			if (Math.random() > 0.25) {
+				const walk = walks[Math.floor(Math.random() * walks.length)];
+				mixer.clipAction(char.geometry.animations[walk], char).play();
+				char.xSpeed = getRandom(-0.02, 0.02);
+				char.zSpeed = getRandom(-0.02, 0.03);
+				camera.ySpeed = 0;
+				const vec = new THREE.Vector3(
+					char.position.x + char.xSpeed, 
+					char.position.y,
+					char.position.z + char.zSpeed
+				);
+				char.lookAt(vec);
+			} else {
+				const idle = idles[Math.floor(Math.random() * idles.length)];
+				mixer.clipAction(char.geometry.animations[idle], char).play();
+				// const vec = new THREE.Vector3(
+				// 	camera.position.x, 
+				// 	0,
+				// 	camera.position.z
+				// );
+				// char.lookAt(vec);
+				// make him look somewhere
+			}
 		}
 	}
 
