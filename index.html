@@ -3,12 +3,18 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <title>fark</title>
-    <style>
+    <title>hot dogs</title>
+	<style>
 		body {
 			margin: 0px;
 			background-color: #000000;
 			overflow: hidden;
+		}
+		#blocker, #instructions {
+			-webkit-user-select: none;  /* Chrome all / Safari all */
+			-moz-user-select: none;     /* Firefox all */
+			-ms-user-select: none;      /* IE 10+ */
+			user-select: none;          /* Likely future */  
 		}
 		#lines {
 			position: fixed;
@@ -58,7 +64,7 @@
 	<script src="js/effects/OutlineEffect.js"></script>
 
 	<script src="lines/lib/jquery.min.js"></script>
-	<script src="lines/lib/cool.js"></script>
+	<script src="lines/lib/cool/cool.js"></script>
 	<script src="lines/play/play.js"></script>
 
 	<script src="js/char.js"></script>
