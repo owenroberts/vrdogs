@@ -137,7 +137,7 @@ function init() {
 				currentDialog = 0;
 				dialogs.map((d) => d.start = 0);
 				nextClip = true;
-				bkgMusic.src = "clips/theme_2_80-12.mp3";
+				bkgMusic.src = "clips/theme_7_80-12.mp3";
 				bkgMusic.play();
 			} else {
 				animate();
