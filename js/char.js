@@ -18,18 +18,18 @@ const dialogs = [
 	// starts with empty church windows ... 
 	{ track: "clips/0.mp3",	 anim: "drawings/beach.json", sides: [0,1,4,5], delay: 6000, end: 2000 },
 	{ track: "clips/1.mp3",	 anim: "drawings/mustard_3.json", sides: [0, 1, 4, 5], delay: 3000, end: 2000 },
-	{ track: "clips/2.mp3",	 anim: "drawings/jesus_windows.json", sides: [0, 1], delay: 2000, end: 2000 },
+	{ track: "clips/2.mp3",	 anim: "drawings/jesus_windows.json", sides: [0, 1], delay: 3000, end: 2000 },
 	{ track: "clips/3.mp3",	 anim: "drawings/heavenhell.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000},
-	{ track: "clips/4.mp3",	 anim: "drawings/liens.json", sides: [2, 3], delay: 2000, end: 2000 },
-	{ track: "clips/5.mp3",  anim: "drawings/moon.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/4.mp3",	 anim: "drawings/liens.json", sides: [1, 2, 3], delay: 2000, end: 3000 },
+	{ track: "clips/5.mp3",  anim: "drawings/moon.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 4000 },
 	{ track: "clips/6.mp3",	 anim: "drawings/bite.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/7.mp3",	 anim: "drawings/hotdog_angel.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/8.mp3",	 anim: "drawings/get_a_dog.json", sides: [0, 1, 3, 4, 5], delay: 2000, end: 2000 },
+	{ track: "clips/7.mp3",	 anim: "drawings/hotdog_angel.json", sides: [0, 1, 4, 5], delay: 6000, end: 2000 },
+	{ track: "clips/8.mp3",	 anim: "drawings/get_a_dog.json", sides: [0, 1, 3, 4, 5], delay: 2000, end: 3000 },
 	{ track: "clips/9.mp3",	 anim: "drawings/big_dogs.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
 	{ track: "clips/10.mp3", anim: "drawings/spinning.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/11.mp3", anim: "drawings/adam_and_eve.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/12.mp3", anim: "drawings/hell_hotdog.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/13.mp3", anim: "drawings/cracks_3.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000 }
+	{ track: "clips/11.mp3", anim: "drawings/adam_and_eve.json", sides: [0, 1, 4, 5], delay: 4000, end: 2000 },
+	{ track: "clips/12.mp3", anim: "drawings/hell_hotdog.json", sides: [0, 1, 4, 5], delay: 2000, end: 6000 },
+	{ track: "clips/13.mp3", anim: "drawings/cracks_2.json", sides: [0, 1, 4, 5], delay: 2000, end: 4000 }
 ];
 
 let currentDialog = 0;
@@ -137,7 +137,8 @@ function init() {
 				currentDialog = 0;
 				dialogs.map((d) => d.start = 0);
 				nextClip = true;
-				bkgMusic.src = "clips/theme_7_80-12.mp3";
+				bkgMusic.src = "clips/theme_7_80_12.mp3";
+				bkgMusic.loop = true;
 				bkgMusic.play();
 			} else {
 				animate();
@@ -198,27 +199,26 @@ function animate() {
 					currentDialog = nextIndex;
 				} else {
 					/* its over */
-					restart = true;
-					bkgMusic.pause();
-					blocker.style.display = 'block';
-					instructions.textContent = "The end";
-					headphones.textContent = "Tap to play again";
-					nextClip = false;
-					mixer.stopAllAction();
-					mixer.clipAction(char.geometry.animations[3], char).play();
-					char.xSpeed = 0;
-					char.zSpeed = 0;
-					linesPlayer.loadAnimation("drawings/big_dogs.json", function() {
-						// turn on dialog.sides, off others
-						planes.map((p, i) => [0,1,2,3,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
-					});
-					bkgMusic.src = "clips/end.mp3";
-					bkgMusic.play();
-					// audioLoader.load( "end.mp3", function(buffer) {
-					// 	voiceSound.setBuffer(buffer);
-					// 	voiceSound.setRefDistance(20);
-					// 	voiceSound.play();
-					// });
+					setTimeout(function() { 
+						restart = true;
+						bkgMusic.pause();
+						blocker.style.display = 'block';
+						instructions.textContent = "Tap to play again";
+						headphones.textContent = "End of part 1";
+						nextClip = false;
+						mixer.stopAllAction();
+						const endAnim = [1,2,3,4][Cool.randomInt(1,4)];
+						mixer.clipAction(char.geometry.animations[endAnim], char).play();
+						char.xSpeed = 0;
+						char.zSpeed = 0;
+						linesPlayer.loadAnimation("drawings/big_dogs.json", function() {
+							// turn on dialog.sides, off others
+							planes.map((p, i) => [0,1,2,3,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
+						});
+						bkgMusic.src = "clips/end.mp3";
+						bkgMusic.play();
+						bkgMusic.loop = false;
+					}, 2000);
 				}
 			};
 		} else {
@@ -234,7 +234,7 @@ function animate() {
 				// console.log( char.position.distanceTo(camera.position) );
 				if (char.position.distanceTo(camera.position) > 10) {
 					char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-					char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.03);
+					char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
 					console.log( "should walk to camera" );
 				} else {
 					char.xSpeed = Cool.random(-0.02, 0.02);
