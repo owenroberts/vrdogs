@@ -2,10 +2,11 @@ var blocker = document.getElementById( 'blocker' );
 var instructions = document.getElementById( 'instructions' );
 var headphones = document.getElementById( 'headphones' );
 
-const bkgMusic = document.getElementById("music");
-bkgMusic.pause();
-bkgMusic.currentTime = 0;
-bkgMusic.volume = 0.75;
+// const bkgMusic = document.getElementById("music");
+var bkgMusic, bkgLoader;
+// bkgMusic.pause();
+// bkgMusic.currentTime = 0;
+
 
 let restart = false;
 
@@ -16,20 +17,20 @@ const talks = [6,7,8,9];
 /* sides  0 front  1 back  2 top  3 bottom  4 right  5 left*/
 const dialogs = [
 	// starts with empty church windows ... 
-	{ track: "clips/0.mp3",	 anim: "drawings/beach.json", sides: [0,1,4,5], delay: 6000, end: 2000 },
-	{ track: "clips/1.mp3",	 anim: "drawings/mustard_3.json", sides: [0, 1, 4, 5], delay: 3000, end: 2000 },
-	{ track: "clips/2.mp3",	 anim: "drawings/jesus_windows.json", sides: [0, 1], delay: 3000, end: 2000 },
-	{ track: "clips/3.mp3",	 anim: "drawings/heavenhell.json", sides: [0, 1, 4, 5], delay: 2000, end: 2000},
-	{ track: "clips/4.mp3",	 anim: "drawings/liens.json", sides: [1, 2, 3], delay: 2000, end: 3000 },
-	{ track: "clips/5.mp3",  anim: "drawings/moon.json", sides: [0, 1, 2, 4, 5], delay: 2000, end: 4000 },
-	{ track: "clips/6.mp3",	 anim: "drawings/bite.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/7.mp3",	 anim: "drawings/hotdog_angel.json", sides: [0, 1, 4, 5], delay: 6000, end: 2000 },
-	{ track: "clips/8.mp3",	 anim: "drawings/get_a_dog.json", sides: [0, 1, 3, 4, 5], delay: 2000, end: 3000 },
-	{ track: "clips/9.mp3",	 anim: "drawings/big_dogs.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/10.mp3", anim: "drawings/spinning.json", sides: [0, 1, 2, 3, 4, 5], delay: 2000, end: 2000 },
-	{ track: "clips/11.mp3", anim: "drawings/adam_and_eve.json", sides: [0, 1, 4, 5], delay: 4000, end: 2000 },
-	{ track: "clips/12.mp3", anim: "drawings/hell_hotdog.json", sides: [0, 1, 4, 5], delay: 2000, end: 6000 },
-	{ track: "clips/13.mp3", anim: "drawings/cracks_2.json", sides: [0, 1, 4, 5], delay: 2000, end: 4000 }
+	{ track: "clips/0.mp3",	 anim: "drawings/beach.json", sides: [0,1,4,5], delay: 7000, end: 4000 },
+	{ track: "clips/1.mp3",	 anim: "drawings/mustard_3.json", sides: [0, 1, 4, 5], delay: 4000, end: 4000 },
+	{ track: "clips/2.mp3",	 anim: "drawings/cat_jesus_windows.json", sides: [0, 1], delay: 4000, end: 3000 },
+	{ track: "clips/3.mp3",	 anim: "drawings/heavenhell.json", sides: [0, 1, 4, 5], delay: 3000, end: 3000},
+	{ track: "clips/4.mp3",	 anim: "drawings/liens.json", sides: [1, 2, 3], delay: 3000, end: 4000 },
+	{ track: "clips/5.mp3",  anim: "drawings/moon.json", sides: [0, 1, 2, 4, 5], delay: 3000, end: 5000 },
+	{ track: "clips/6.mp3",	 anim: "drawings/bite.json", sides: [0, 1, 2, 3, 4, 5], delay: 3000, end: 3000 },
+	{ track: "clips/7.mp3",	 anim: "drawings/get_a_dog.json", sides: [0, 1, 4, 5], delay: 7000, end: 3000 },
+	{ track: "clips/8.mp3",	 anim: "drawings/cat_hotdog_angel.json", sides: [0, 1, 3, 4, 5], delay: 3000, end: 4000 },
+	{ track: "clips/9.mp3",	 anim: "drawings/big_dogs.json", sides: [0, 1, 2, 3, 4, 5], delay: 3000, end: 3000 },
+	{ track: "clips/10.mp3", anim: "drawings/spinning.json", sides: [0, 1, 2, 3, 4, 5], delay: 3000, end: 3000 },
+	{ track: "clips/11.mp3", anim: "drawings/cat_adam_and_eve.json", sides: [0, 1, 4, 5], delay: 5000, end: 3000 },
+	{ track: "clips/12.mp3", anim: "drawings/hell_hotdog.json", sides: [0, 1, 4, 5], delay: 3000, end: 7000 },
+	{ track: "clips/13.mp3", anim: "drawings/cracks_2.json", sides: [0, 1, 4, 5], delay: 3000, end: 5000 }
 ];
 
 let currentDialog = 0;
@@ -41,6 +42,9 @@ let width = window.innerWidth, height = window.innerHeight;
 let linesPlayer = new LinesPlayer(lines);
 let planes = [];
 
+let phoneLines = new LinesPlayer(document.getElementById('phone'));
+phoneLines.loadAnimation('drawings/phone.json');
+
 let camera, scene, renderer, controls;
 let linesTexture; /* texture gets updated */
 let clock, mixer;
@@ -48,14 +52,21 @@ let listener, voiceSound, voiceSource, audioLoader;
 
 let char;
 
-const mob = mobilecheck();
-if (mob) {
-	init();
-} else {
-	instructions.remove();
-	headphones.textContent = "Mobile device required to play.";
+// better than mobile check, includes ipad
+function onMotion(ev) {
+	window.removeEventListener('devicemotion', onMotion, false);
+	if (ev.acceleration.x != null) {
+		instructions.style.display = "block";
+		headphones.textContent = "Wear headphones.";
+		init();
+
+		document.addEventListener('visibilitychange', () => {
+			location.reload(); // hacky for now
+		});
+	}
 }
 
+window.addEventListener('devicemotion', onMotion, false);
 
 function init() {
 
@@ -111,7 +122,10 @@ function init() {
 	listener = new THREE.AudioListener();
 	camera.add(listener);
 	audioLoader = new THREE.AudioLoader();
-	voiceSound = new THREE.PositionalAudio(listener);
+	voiceSound = new THREE.PositionalAudio( listener );
+
+	bkgLoader = new THREE.AudioLoader();
+	bkgMusic = new THREE.Audio( listener );
 
 	/* blender */
 	mixer = new THREE.AnimationMixer( scene );
@@ -133,18 +147,31 @@ function init() {
 
 		instructions.textContent = "Tap to play";
 		function start() {
+
+			if (document.getElementById('phone'))
+				document.getElementById('phone').remove();
+
 			if (restart) {
 				currentDialog = 0;
 				dialogs.map((d) => d.start = 0);
 				nextClip = true;
-				bkgMusic.src = "clips/theme_7_80_12.mp3";
-				bkgMusic.loop = true;
-				bkgMusic.play();
+				bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+					bkgMusic.stop();
+					bkgMusic.isPlaying = false;		
+					bkgMusic.setBuffer( buffer );
+					bkgMusic.setLoop( true );
+					bkgMusic.play();
+				});
 			} else {
 				animate();
 				bkgMusic.loop = true;
 			}
-			bkgMusic.play();
+
+			bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+				bkgMusic.setBuffer( buffer );
+				bkgMusic.setLoop( true );
+				bkgMusic.play();
+			});
 
 			blocker.style.display = 'none';
 			
@@ -199,15 +226,21 @@ function animate() {
 					currentDialog = nextIndex;
 				} else {
 					/* its over */
+					bkgLoader.load("clips/end.mp3", function(buffer) {
+						bkgMusic.stop();
+						bkgMusic.isPlaying = false;
+						bkgMusic.setBuffer( buffer );
+						bkgMusic.setLoop( false );
+						bkgMusic.play();
+					});
 					setTimeout(function() { 
 						restart = true;
-						bkgMusic.pause();
 						blocker.style.display = 'block';
 						instructions.textContent = "Tap to play again";
 						headphones.textContent = "End of part 1";
 						nextClip = false;
 						mixer.stopAllAction();
-						const endAnim = [1,2,3,4][Cool.randomInt(1,4)];
+						const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
 						mixer.clipAction(char.geometry.animations[endAnim], char).play();
 						char.xSpeed = 0;
 						char.zSpeed = 0;
@@ -215,9 +248,6 @@ function animate() {
 							// turn on dialog.sides, off others
 							planes.map((p, i) => [0,1,2,3,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
 						});
-						bkgMusic.src = "clips/end.mp3";
-						bkgMusic.play();
-						bkgMusic.loop = false;
 					}, 2000);
 				}
 			};
@@ -229,13 +259,9 @@ function animate() {
 			if (Math.random() > 0.3) {
 				const walk = walks[Math.floor(Math.random() * walks.length)];
 				mixer.clipAction(char.geometry.animations[walk], char).play();
-				
-				// get distance from camera? 
-				// console.log( char.position.distanceTo(camera.position) );
 				if (char.position.distanceTo(camera.position) > 10) {
 					char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
 					char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-					console.log( "should walk to camera" );
 				} else {
 					char.xSpeed = Cool.random(-0.02, 0.02);
 					char.zSpeed = Cool.random(-0.02, 0.03);
@@ -274,14 +300,14 @@ function animate() {
 }
 
 function onWindowResize() { 
-	width = window.innerWidth;
-	height = window.innerHeight;
+	width =  document.documentElement.clientWidth;
+	height =  document.documentElement.clientHeight;
 	camera.aspect = width / height;
 	camera.updateProjectionMatrix(); // https://stackoverflow.com/questions/30453549/three-js-canvas-not-resizing-to-mobile-device-window-width
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize(width, height);
 }
-window.addEventListener( 'resize', onWindowResize, false );
+window.addEventListener( 'orientationchange', onWindowResize, false );
 
 /* old crap */
 

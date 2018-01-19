@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <title>hot dogs</title>
 	<style>
@@ -34,30 +34,44 @@
 		#instructions {
 			padding:0.5em;
 			margin:0.5em;
-			font-size: 4em;
+			font-size: 3em;
 			cursor: pointer;
 			border:1px solid white;
 			border-radius: 0.25em;
+			display: none;
 		}
 		#instructions:active {
 			color:black;
 			background:white;
 		}
+		#stats {
+			position:fixed;
+			top:0;
+			left:0;
+			background:white;
+			z-index: 99;
+			padding:10px;
+		}
+		#stats #ww, #stats #wh {
+			color: green;
+		}
 	</style>
 </head>
 <body>
+	<!-- <div id="stats">
+		<span id="ww">w</span>
+		<span id="wh">j</span>
+	</div> -->
 	<div id="blocker">
 		<div id="instructions">
 			Loading
 		</div>
-		<p id="headphones" style="font-size:1.5em">Wear headphones</p>
+		<p id="headphones" style="font-size:1.5em">Mobile device required to play.</p>
+		<canvas id="phone"></canvas>
 	</div>
     <div id="container">
     	<canvas id="lines"></canvas>
 	</div>
-	<audio id="music" autostart="0">
-		<source src="clips/theme_7_80_12.mp3" type="">
-	</audio>
 
 	<script src="build/three.js"></script>
 	<script src="js/controls/DeviceOrientationControls.js"></script>
