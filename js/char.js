@@ -302,12 +302,17 @@ function animate() {
 function onWindowResize() { 
 	width =  document.documentElement.clientWidth;
 	height =  document.documentElement.clientHeight;
+	
+	//document.getElementById('ww').textContent = window.screen.width + ", " + width;
+	//document.getElementById('wh').textContent = window.screen.height + ", " + height;
+
 	camera.aspect = width / height;
 	camera.updateProjectionMatrix(); // https://stackoverflow.com/questions/30453549/three-js-canvas-not-resizing-to-mobile-device-window-width
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize(width, height);
 }
-window.addEventListener( 'orientationchange', onWindowResize, false );
+window.addEventListener( 'resize', onWindowResize, false );
+// https://stackoverflow.com/questions/28402100/wrong-value-for-window-innerwidth-during-onload-event-in-firefox-for-android
 
 /* old crap */
 
