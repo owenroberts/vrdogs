@@ -7,7 +7,6 @@ var bkgMusic, bkgLoader;
 // bkgMusic.pause();
 // bkgMusic.currentTime = 0;
 
-
 let restart = false;
 
 const idles = [0,1,2,3,4];
@@ -55,11 +54,10 @@ let char;
 // better than mobile check, includes ipad
 function onMotion(ev) {
 	window.removeEventListener('devicemotion', onMotion, false);
-	if (ev.acceleration.x != null) {
+	if (ev.acceleration.x != null || ev.accelerationIncludingGravity.x != null) {
 		instructions.style.display = "block";
 		headphones.textContent = "Wear headphones.";
 		init();
-
 		document.addEventListener('visibilitychange', () => {
 			location.reload(); // hacky for now
 		});
@@ -238,6 +236,7 @@ function animate() {
 						blocker.style.display = 'block';
 						instructions.textContent = "Tap to play again";
 						headphones.textContent = "End of part 1";
+						document.getElementById("tramp").style.display = "block";
 						nextClip = false;
 						mixer.stopAllAction();
 						const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
