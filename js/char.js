@@ -44,10 +44,11 @@ let planes = [];
 let phoneLines = new LinesPlayer(document.getElementById('phone'));
 phoneLines.loadAnimation('drawings/phone.json');
 
-let camera, scene, renderer, controls;
+let camera, scene, renderer, controls, stEffect;
 let linesTexture; /* texture gets updated */
 let clock, mixer;
 let listener, voiceSound, voiceSource, audioLoader;
+let element, container;
 
 let char;
 
@@ -72,6 +73,7 @@ function init() {
 	scene = new THREE.Scene();
 
 	renderer = new THREE.WebGLRenderer();
+	element = renderer.domElement;
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize(width, height);
 	document.body.appendChild(renderer.domElement);
@@ -82,8 +84,40 @@ function init() {
 		defaultColor: new THREE.Color( 0xffffff )
 	} );
 
-	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-	controls = new THREE.DeviceOrientationControls( camera );
+	stEffect = new THREE.StereoEffect(renderer);
+
+	// camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
+	// controls = new THREE.DeviceOrientationControls( camera );
+	
+	camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
+	camera.position.set(0, 10, 0);
+	scene.add(camera);
+
+	controls = new THREE.OrbitControls(camera, element);
+	controls.rotateUp(Math.PI / 4);
+	controls.target.set(
+		camera.position.x + 0.1,
+		camera.position.y,
+		camera.position.z
+	);
+	controls.noZoom = true;
+	controls.noPan = true;
+
+	function setOrientationControls(e) {
+		if (!e.alpha) {
+			return;
+		}
+
+		controls = new THREE.DeviceOrientationControls(camera, true);
+		controls.connect();
+		controls.update();
+
+		element.addEventListener('click', fullscreen, false);
+		window.removeEventListener('deviceorientation', setOrientationControls, true);
+	}
+	window.addEventListener('deviceorientation', setOrientationControls, true);
+
+
 	camera.position.z = 5;
 	camera.ySpeed = 0;
 
@@ -295,43 +329,35 @@ function animate() {
     camera.position.y += camera.ySpeed;
     controls.update();
    	// renderer.render(scene, camera);
-   	effect.render( scene, camera );
+   	stEffect.render( scene, camera );
 }
 
 function onWindowResize() { 
 	width =  document.documentElement.clientWidth;
 	height =  document.documentElement.clientHeight;
-	
-	//document.getElementById('ww').textContent = window.screen.width + ", " + width;
-	//document.getElementById('wh').textContent = window.screen.height + ", " + height;
+
+	// var width = container.offsetWidth;
+	// var height = container.offsetHeight;
+
 
 	camera.aspect = width / height;
 	camera.updateProjectionMatrix(); // https://stackoverflow.com/questions/30453549/three-js-canvas-not-resizing-to-mobile-device-window-width
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize(width, height);
+	stEffect.setSize(width, height);
 }
 window.addEventListener( 'resize', onWindowResize, false );
+
+function fullscreen() {
+	if (container.requestFullscreen) {
+		container.requestFullscreen();
+	} else if (container.msRequestFullscreen) {
+		container.msRequestFullscreen();
+	} else if (container.mozRequestFullScreen) {
+		container.mozRequestFullScreen();
+	} else if (container.webkitRequestFullscreen) {
+		container.webkitRequestFullscreen();
+	}
+}
+
 // https://stackoverflow.com/questions/28402100/wrong-value-for-window-innerwidth-during-onload-event-in-firefox-for-android
-
-/* old crap */
-
-	// const helperMaterial = new THREE.MeshBasicMaterial( { color: 0xff00ff, wireframe: true } );
-// helper 
-	// const helper = new THREE.Mesh( planeGeo, helperMaterial );
-	// helper.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
-	// helper.rotation.set( side[3], side[4], side[5] );
-	// scene.add( helper );
-
-	// var sphere = new THREE.Mesh( new THREE.SphereGeometry( 50, 20, 10 ), linesMaterial );
-	// sphere.position.set( 0, 0, 0 );
-	// scene.add( sphere );
-
-	// var cyl = new THREE.Mesh( new THREE.CylinderGeometry( 10, 10, 20, 16, 1, true ), linesMaterial );
-	// cyl.position.set( 0, -3, 0 );
-	// scene.add( cyl );
-
-
-	// var light = new THREE.HemisphereLight( 0xeeeeee, 0x020202, 0.75 );
-	// light.position.set( 0.5, 1, 0.75 );
-	// scene.add( light );
-	// scene.add( group );

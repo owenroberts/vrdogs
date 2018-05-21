@@ -1,3 +1,15 @@
 11.12.2018
 - blinking works but need to figure out the nodes setup to keep the weird overlays and shit
 - lines look really skinny compared to other lines...
+
+5.21.2018
+- hotdogs vr
+- building this to start working on 3d poems
+- 1/week for summer 2018
+
+- aframe https://aframe.io/
+- three https://threejs.org/examples/webvr_cubes.html
+	- not supported ios chrome/safari?
+- webvr.info? https://webvr.info/
+- mdn? - https://github.com/mdn/webvr-tests
+- https://developers.google.com/web/fundamentals/vr/
