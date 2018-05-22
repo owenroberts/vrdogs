@@ -44,7 +44,8 @@ let planes = [];
 let phoneLines = new LinesPlayer(document.getElementById('phone'));
 phoneLines.loadAnimation('drawings/phone.json');
 
-let camera, scene, renderer, controls, stEffect;
+let camera, scene, renderer, controls;
+let effect, stEffect, composer;
 let linesTexture; /* texture gets updated */
 let clock, mixer;
 let listener, voiceSound, voiceSource, audioLoader;
@@ -83,7 +84,6 @@ function init() {
 		defaultThickNess: 1,
 		defaultColor: new THREE.Color( 0xffffff )
 	} );
-
 	stEffect = new THREE.StereoEffect(renderer);
 
 	// camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
@@ -91,7 +91,21 @@ function init() {
 	
 	camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
 	camera.position.set(0, 10, 0);
+	camera.position.z = 5;
+	camera.ySpeed = 0;
 	scene.add(camera);
+
+	composer = new THREE.EffectComposer(renderer);
+	const scenePass = new THREE.RenderPass(scene, camera);
+	composer.addPass(scenePass);
+	
+	const effectPass = new THREE.RenderPass(effect);
+    composer.addPass(effectPass);
+    effectPass.renderToScreen = true;
+	
+	/*const stEffectPass = new THREE.RenderPass(stEffect);
+	stEffectPass.renderToScreen = true;
+    composer.addPass(stEffectPass);*/
 
 	controls = new THREE.OrbitControls(camera, element);
 	controls.rotateUp(Math.PI / 4);
@@ -116,14 +130,9 @@ function init() {
 		window.removeEventListener('deviceorientation', setOrientationControls, true);
 	}
 	window.addEventListener('deviceorientation', setOrientationControls, true);
-
-
-	camera.position.z = 5;
-	camera.ySpeed = 0;
-
-	/* outside lines */
 	
 
+	/* outside lines */
 	lines.width =  1024;
 	lines.height = 1024;
 	linesTexture = new THREE.Texture(lines);
@@ -329,7 +338,8 @@ function animate() {
     camera.position.y += camera.ySpeed;
     controls.update();
    	// renderer.render(scene, camera);
-   	stEffect.render( scene, camera );
+   	// stEffect.render( scene, camera );
+   	composer.render();
 }
 
 function onWindowResize() { 
@@ -349,14 +359,14 @@ function onWindowResize() {
 window.addEventListener( 'resize', onWindowResize, false );
 
 function fullscreen() {
-	if (container.requestFullscreen) {
-		container.requestFullscreen();
-	} else if (container.msRequestFullscreen) {
-		container.msRequestFullscreen();
-	} else if (container.mozRequestFullScreen) {
-		container.mozRequestFullScreen();
-	} else if (container.webkitRequestFullscreen) {
-		container.webkitRequestFullscreen();
+	if (element.requestFullscreen) {
+		element.requestFullscreen();
+	} else if (element.msRequestFullscreen) {
+		element.msRequestFullscreen();
+	} else if (element.mozRequestFullScreen) {
+		element.mozRequestFullScreen();
+	} else if (element.webkitRequestFullscreen) {
+		element.webkitRequestFullscreen();
 	}
 }
 

@@ -6,6 +6,7 @@
 - hotdogs vr
 - building this to start working on 3d poems
 - 1/week for summer 2018
+- apply full screen function to other versions?
 
 - aframe https://aframe.io/
 - three https://threejs.org/examples/webvr_cubes.html
@@ -13,3 +14,10 @@
 - webvr.info? https://webvr.info/
 - mdn? - https://github.com/mdn/webvr-tests
 - https://developers.google.com/web/fundamentals/vr/
+- https://vr.chromeexperiments.com/
+	- this worked easy, all three js stuff
+
+5.22.2018
+- watch this series: http://blog.cjgammon.com/threejs-post-processing
+- looks like there are issues with effect composer and vr
+	- https://github.com/mrdoob/three.js/issues/8146
