@@ -21,3 +21,7 @@
 - watch this series: http://blog.cjgammon.com/threejs-post-processing
 - looks like there are issues with effect composer and vr
 	- https://github.com/mrdoob/three.js/issues/8146
+
+5.23.2018
+- webvr example? https://threejs.org/examples/?q=webvr#webvr_daydream
+- 
