@@ -16,10 +16,38 @@
 - https://developers.google.com/web/fundamentals/vr/
 - https://vr.chromeexperiments.com/
 	- this worked easy, all three js stuff
+	- weird make frustrum warning 
+	- doesn't work w composer ...
 
 5.22.2018
 - watch this series: http://blog.cjgammon.com/threejs-post-processing
+	- for composer to add lines and stereo effect
+	- different effect composer - https://github.com/spite/Wagner
 - looks like there are issues with effect composer and vr
 	- https://github.com/mrdoob/three.js/issues/8146
-- try vr effect - https://threejs.org/examples/?q=webvr#webvr_daydream
-- frustrum warning was there before still works maybe just turn off warning in source?
+
+5.23.2018
+- webvr example? https://threejs.org/examples/?q=webvr#webvr_daydream
+	- this is also in above ...
+	- doesn't work on ios
+	- works good w daydream
+
+- paths forward
+	- just do google chrome
+	- try to debug chrome exp. then debug composer, or ignore warning
+	- try a-frame
+	- try mdn
+
+- fixed warning - was in stereoeffect.js
+- wagner doesn't appear to support outside of its own effects
+- try composer again, then a-frame
+	- trying this solution: https://github.com/mrdoob/three.js/issues/8146
+	- narp
+- outline shader??
+	- http://jsfiddle.net/psyrendust/ga13okzz/ 
+		- uses two meshes, prob not gonna work with char
+	- view-source:https://stemkoski.github.io/Three.js/Outline.html
+- fuck me
+- don't want to make an aframe scene
+- try just the webvr version and move on w ur life
+
