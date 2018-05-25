@@ -51,3 +51,25 @@
 - don't want to make an aframe scene
 - try just the webvr version and move on w ur life
 
+5.24.2018
+- webvr
+	- error w 87 webvr, replaced w example webvr
+	- vr not supported, switch to three 92
+	- switch rest of components at some point
+	- can't run locally?
+	- basic chrome doesn't let you do this
+	- it's experimental
+	- lets go back to the google cardboard version
+	- figure out some other outline effect
+
+5.25.2018
+- lets try stereo effect + outline
+	- http://jsfiddle.net/psyrendust/ga13okzz/ 
+		- partly working but cant get animation on second mesh
+		- https://github.com/mrdoob/three.js/issues/5878
+		- this motherfucker has two scenes ... should i keep going?
+		- maybe try stemkoski ->
+	- view-source:https://stemkoski.github.io/Three.js/Outline.html
+
+- good doc on animation, findByName
+	- https://threejs.org/docs/#manual/introduction/Animation-system

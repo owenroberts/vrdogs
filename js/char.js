@@ -28,6 +28,36 @@ const dialogs = [
 	{ track: "clips/13.mp3", anim: "drawings/cracks_2.json", sides: [0, 1, 4, 5], delay: 3000, end: 5000 }
 ];
 
+const shader = {
+    'outline' : {
+        vertex_shader: [
+            "uniform float offset;",
+            "void main() {",
+                "vec4 pos = modelViewMatrix * vec4( position + normal * offset, 1.0 );",
+                "gl_Position = projectionMatrix * pos;",
+            "}"
+        ].join("\n"),
+
+        fragment_shader: [
+            "void main(){",
+                "gl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );",
+            "}"
+        ].join("\n")
+    }
+};
+const outShader = shader['outline'];
+const uniforms = { 
+	offset: {
+		type: "f",
+		value: 100
+	}
+};
+const outlineMaterial = new THREE.MeshLambertMaterial({
+	uniforms,
+	vertexShader: outShader.vertex_shader,
+	fragmentShader: outShader.fragment_shader
+});
+
 let currentDialog = 0;
 let time;
 let nextClip = true;
@@ -43,10 +73,10 @@ phoneLines.loadAnimation('drawings/phone.json');
 let camera, scene, renderer, controls;
 let effect, stEffect, composer;
 let linesTexture; /* texture gets updated */
-let clock, mixer;
+let clock, mixer, mixer2;
 let listener, voiceSound, voiceSource, audioLoader;
 let element, container;
-let char;
+let char, char2;
 
 // better than mobile check, includes ipad
 function onMotion(ev) {
@@ -89,6 +119,9 @@ function init() {
 	camera.ySpeed = 0;
 	scene.add(camera);
 
+	var light = new THREE.AmbientLight( 0xffffff ); // soft white light
+	scene.add( light );
+
 	function setOrientationControls(e) {
 		if (!e.alpha) {
 			return;
@@ -128,6 +161,9 @@ function init() {
 		planes.push(planeMesh);
 	}
 
+
+
+
 	/* audio */
 	listener = new THREE.AudioListener();
 	camera.add(listener);
@@ -138,23 +174,37 @@ function init() {
 
 	/* blender */
 	mixer = new THREE.AnimationMixer( scene );
+	mixer2 = new THREE.AnimationMixer( scene );
 	let loader = new THREE.JSONLoader();
 	loader.load("models/char_toon.json", function(geometry, materials) {
+		outlineMaterial.morphTargets = true;
+		outlineMaterial.skinning = true;
+		console.log('outline', outlineMaterial);
+		char2 = new THREE.SkinnedMesh(geometry, outlineMaterial);
+		char2.material.depthWrite = false;
+		char2.position.set(0, -3, -2);
+		char2.scale.set(0.5,0.5,0.5);
+		mixer.clipAction(char2.geometry.animations[1], char2).play();
+		scene.add(char2);
+	});
+	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
+		charMat.color.setHex(0x0000aa);
 		charMat.morphTargets = true;
-		charMat.color.setHex(0xffff00);
 		charMat.skinning = true;
+		console.log('char', charMat);
 		char = new THREE.SkinnedMesh(geometry, charMat);
 		char.position.set(0, -3, -2);
 		char.scale.set(0.5,0.5,0.5);
 		char.xSpeed = 0;
 		char.zSpeed = 0;
+
 		char.add(voiceSound);
-		mixer.clipAction(geometry.animations[1], char)
-			.play();
+		mixer.clipAction(char.geometry.animations[1], char).play();
 		scene.add(char);
 
 		instructions.textContent = "Tap to play";
+		
 		function start() {
 
 			if (document.getElementById('phone'))
@@ -223,8 +273,10 @@ function animate() {
 			});
 
 			mixer.stopAllAction();
+			mixer2.stopAllAction();
 			const talk = talks[Math.floor(Math.random() * talks.length)];
 			mixer.clipAction(char.geometry.animations[talk], char).play();
+			mixer.clipAction(char2.geometry.animations[talk], char2).play();
 			// https://stackoverflow.com/questions/35323062/detect-sound-is-ended-in-three-positionalaudio
 			voiceSound.onEnded = function() {
 				voiceSound.isPlaying = false;
@@ -250,8 +302,10 @@ function animate() {
 						document.getElementById("tramp").style.display = "block";
 						nextClip = false;
 						mixer.stopAllAction();
+						mixer2.stopAllAction();
 						const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
 						mixer.clipAction(char.geometry.animations[endAnim], char).play();
+						mixer.clipAction(char2.geometry.animations[endAnim], char2).play();
 						char.xSpeed = 0;
 						char.zSpeed = 0;
 						linesPlayer.loadAnimation("drawings/big_dogs.json", function() {
@@ -265,10 +319,12 @@ function animate() {
 			dialog.start = 1;
 			time += dialog.delay;
 			mixer.stopAllAction();
+			mixer2.stopAllAction();
 
 			if (Math.random() > 0.3) {
 				const walk = walks[Math.floor(Math.random() * walks.length)];
 				mixer.clipAction(char.geometry.animations[walk], char).play();
+				mixer.clipAction(char2.geometry.animations[walk], char2).play();
 				if (char.position.distanceTo(camera.position) > 10) {
 					char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
 					char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
@@ -284,9 +340,11 @@ function animate() {
 					char.position.z + char.zSpeed
 				);
 				char.lookAt(vec);
+				char2.lookAt(vec);
 			} else {
 				const idle = idles[Math.floor(Math.random() * idles.length)];
 				mixer.clipAction(char.geometry.animations[idle], char).play();
+				mixer.clipAction(char2.geometry.animations[idle], char2).play();
 			}
 		}
 	}
@@ -294,13 +352,16 @@ function animate() {
     requestAnimationFrame(animate);
     linesTexture.needsUpdate = true;
     mixer.update( clock.getDelta() );
+    // mixer2.update( clock.getDelta() );
     char.position.x += char.xSpeed;
     char.position.z += char.zSpeed;
+    // char2.position.x = char.position.x;
+    // char2.position.z = char.position.z;
     camera.position.y += camera.ySpeed;
     controls.update();
-   	// renderer.render(scene, camera);
+   	renderer.render(scene, camera);
    	// effect.render( scene, camera );
-   	stEffect.render( scene, camera );
+   	// stEffect.render( scene, camera );
 }
 
 function onWindowResize() { 
