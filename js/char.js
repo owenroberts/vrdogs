@@ -28,35 +28,6 @@ const dialogs = [
 	{ track: "clips/13.mp3", anim: "drawings/cracks_2.json", sides: [0, 1, 4, 5], delay: 3000, end: 5000 }
 ];
 
-const shader = {
-    'outline' : {
-        vertex_shader: [
-            "uniform float offset;",
-            "void main() {",
-                "vec4 pos = modelViewMatrix * vec4( position + normal * offset, 1.0 );",
-                "gl_Position = projectionMatrix * pos;",
-            "}"
-        ].join("\n"),
-
-        fragment_shader: [
-            "void main(){",
-                "gl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );",
-            "}"
-        ].join("\n")
-    }
-};
-const outShader = shader['outline'];
-const uniforms = { 
-	offset: {
-		type: "f",
-		value: 1
-	}
-};
-const outlineMaterial = new THREE.MeshLambertMaterial({
-	uniforms,
-	vertexShader: outShader.vertex_shader,
-	fragmentShader: outShader.fragment_shader
-});
 
 let currentDialog = 0;
 let time;
@@ -192,17 +163,10 @@ function init() {
 	});
 	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
-		var toonMat = new THREE.MeshToonMaterial({
-			color: 0x000000,
-			specular: 0xffffff,
-			reflectivity: 0,
-			shininess: -10
-		});
 		charMat.color.setHex(0x000000);
 		charMat.morphTargets = true;
 		charMat.skinning = true;
-		toonMat.morphTargets = true;
-		toonMat.skinning = true;
+		
 		console.log('char', charMat);
 		char = new THREE.SkinnedMesh(geometry, charMat);
 		char.position.set(0, -3, -2);

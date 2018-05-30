@@ -73,3 +73,12 @@
 
 - good doc on animation, findByName
 	- https://threejs.org/docs/#manual/introduction/Animation-system
+
+5.30.2018
+- https://codepen.io/yoshimsa-yokoyama/pen/XKMayR?editors=1010
+	- toon shader w image texture
+	- similar to stemkoski, just rendering scene twice w front side and back side
+- https://github.com/mrdoob/three.js/issues/1567
+	- https://github.com/dataarts/3-dreams-of-black/blob/master/tests/shading/toon4.html
+	- try running this to see how it looks?
+	
