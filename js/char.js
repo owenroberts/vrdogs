@@ -178,14 +178,15 @@ function init() {
 	let loader = new THREE.JSONLoader();
 	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
+		charMat.side = THREE.BackSide;
 		charMat.morphTargets = true;
 		charMat.skinning = true;
-		charMat.color.setHex(0x000000);
+		charMat.color.setHex(0xffffff);
 		console.log('outline', charMat);
 		char2 = new THREE.SkinnedMesh(geometry, charMat);
 		char2.position.set(0, -3, -2);
 		char2.scale.set(0.5,0.5,0.5);
-		char2.scale.multiplyScalar(1.05);
+		char2.scale.multiplyScalar(1.025);
 		mixer.clipAction(char2.geometry.animations[1], char2).play();
 		scene.add(char2);
 	});
@@ -197,7 +198,7 @@ function init() {
 			reflectivity: 0,
 			shininess: -10
 		});
-		charMat.color.setHex(0xffffff);
+		charMat.color.setHex(0x000000);
 		charMat.morphTargets = true;
 		charMat.skinning = true;
 		toonMat.morphTargets = true;
