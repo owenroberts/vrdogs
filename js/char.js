@@ -49,7 +49,7 @@ const outShader = shader['outline'];
 const uniforms = { 
 	offset: {
 		type: "f",
-		value: 100
+		value: 1
 	}
 };
 const outlineMaterial = new THREE.MeshLambertMaterial({
@@ -121,6 +121,9 @@ function init() {
 
 	var light = new THREE.AmbientLight( 0xffffff ); // soft white light
 	scene.add( light );
+	var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+	directionalLight.position.set( 1, 1, 1 ).normalize();
+	// scene.add( directionalLight );
 
 	function setOrientationControls(e) {
 		if (!e.alpha) {
@@ -161,9 +164,6 @@ function init() {
 		planes.push(planeMesh);
 	}
 
-
-
-
 	/* audio */
 	listener = new THREE.AudioListener();
 	camera.add(listener);
@@ -177,21 +177,31 @@ function init() {
 	mixer2 = new THREE.AnimationMixer( scene );
 	let loader = new THREE.JSONLoader();
 	loader.load("models/char_toon.json", function(geometry, materials) {
-		outlineMaterial.morphTargets = true;
-		outlineMaterial.skinning = true;
-		console.log('outline', outlineMaterial);
-		char2 = new THREE.SkinnedMesh(geometry, outlineMaterial);
-		char2.material.depthWrite = false;
+		var charMat = materials[0];
+		charMat.morphTargets = true;
+		charMat.skinning = true;
+		charMat.color.setHex(0x000000);
+		console.log('outline', charMat);
+		char2 = new THREE.SkinnedMesh(geometry, charMat);
 		char2.position.set(0, -3, -2);
 		char2.scale.set(0.5,0.5,0.5);
+		char2.scale.multiplyScalar(1.05);
 		mixer.clipAction(char2.geometry.animations[1], char2).play();
 		scene.add(char2);
 	});
 	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
-		charMat.color.setHex(0x0000aa);
+		var toonMat = new THREE.MeshToonMaterial({
+			color: 0x000000,
+			specular: 0xffffff,
+			reflectivity: 0,
+			shininess: -10
+		});
+		charMat.color.setHex(0xffffff);
 		charMat.morphTargets = true;
 		charMat.skinning = true;
+		toonMat.morphTargets = true;
+		toonMat.skinning = true;
 		console.log('char', charMat);
 		char = new THREE.SkinnedMesh(geometry, charMat);
 		char.position.set(0, -3, -2);
@@ -352,16 +362,15 @@ function animate() {
     requestAnimationFrame(animate);
     linesTexture.needsUpdate = true;
     mixer.update( clock.getDelta() );
-    // mixer2.update( clock.getDelta() );
     char.position.x += char.xSpeed;
     char.position.z += char.zSpeed;
-    // char2.position.x = char.position.x;
-    // char2.position.z = char.position.z;
+    char2.position.x = char.position.x;
+    char2.position.z = char.position.z;
     camera.position.y += camera.ySpeed;
     controls.update();
-   	renderer.render(scene, camera);
+   	// renderer.render(scene, camera);
    	// effect.render( scene, camera );
-   	// stEffect.render( scene, camera );
+   	stEffect.render( scene, camera );
 }
 
 function onWindowResize() { 
