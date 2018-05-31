@@ -92,11 +92,10 @@ function init() {
 
 	var light = new THREE.AmbientLight( 0xffffff ); // soft white light
 	scene.add( light );
-	var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-	directionalLight.position.set( 1, 1, 1 ).normalize();
-	// scene.add( directionalLight );
+
 
 	function setOrientationControls(e) {
+		console.log(e);
 		if (!e.alpha) {
 			return;
 		}
@@ -127,9 +126,9 @@ function init() {
 
 	for (let i = 0; i < sides.length; i++) {
 		const side = sides[i];
-		const planeGeo = new THREE.PlaneGeometry( sz*2, sz*2, i + 1 );
+		const planeGeo = new THREE.PlaneGeometry( sz*4, sz*4, i + 1 );
 		const planeMesh = new THREE.Mesh( planeGeo, linesMaterial );
-		planeMesh.position.set( side[0] * sz, side[1] * sz, side[2] * sz );
+		planeMesh.position.set( side[0] * sz * 2, side[1] * sz * 2, side[2] * sz * 2 );
 		planeMesh.rotation.set( side[3], side[4], side[5] );
 		scene.add( planeMesh );
 		planes.push(planeMesh);
@@ -153,11 +152,10 @@ function init() {
 		charMat.morphTargets = true;
 		charMat.skinning = true;
 		charMat.color.setHex(0xffffff);
-		console.log('outline', charMat);
 		char2 = new THREE.SkinnedMesh(geometry, charMat);
 		char2.position.set(0, -3, -2);
 		char2.scale.set(0.5,0.5,0.5);
-		char2.scale.multiplyScalar(1.025);
+		char2.scale.multiplyScalar(1.01);
 		mixer.clipAction(char2.geometry.animations[1], char2).play();
 		scene.add(char2);
 	});
@@ -166,14 +164,11 @@ function init() {
 		charMat.color.setHex(0x000000);
 		charMat.morphTargets = true;
 		charMat.skinning = true;
-		
-		console.log('char', charMat);
 		char = new THREE.SkinnedMesh(geometry, charMat);
 		char.position.set(0, -3, -2);
 		char.scale.set(0.5,0.5,0.5);
 		char.xSpeed = 0;
 		char.zSpeed = 0;
-
 		char.add(voiceSound);
 		mixer.clipAction(char.geometry.animations[1], char).play();
 		scene.add(char);
@@ -271,10 +266,6 @@ function animate() {
 					});
 					setTimeout(function() { 
 						restart = true;
-						blocker.style.display = 'block';
-						instructions.textContent = "Tap to play again";
-						headphones.textContent = "End of part 1";
-						document.getElementById("tramp").style.display = "block";
 						nextClip = false;
 						mixer.stopAllAction();
 						mixer2.stopAllAction();
