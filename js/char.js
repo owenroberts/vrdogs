@@ -1,6 +1,6 @@
 var blocker = document.getElementById( 'blocker' );
+var startButton = document.getElementById( 'start-button' );
 var instructions = document.getElementById( 'instructions' );
-var headphones = document.getElementById( 'headphones' );
 var bkgMusic, bkgLoader;
 
 let restart = false;
@@ -39,30 +39,87 @@ let linesPlayer = new LinesPlayer(lines);
 let planes = [];
 
 let phoneLines = new LinesPlayer(document.getElementById('phone'));
-phoneLines.loadAnimation('drawings/phone.json');
+phoneLines.loadAnimation('drawings/rotate_phone_256.json');
 
 let camera, scene, renderer, controls;
 let effect, stEffect, composer;
 let linesTexture; /* texture gets updated */
-let clock, mixer, mixer2;
+let clock, mixer;
 let listener, voiceSound, voiceSource, audioLoader;
 let element, container;
 let char, char2;
 
 // better than mobile check, includes ipad
+// if this is a phone allow user to start
 function onMotion(ev) {
 	window.removeEventListener('devicemotion', onMotion, false);
 	if (ev.acceleration.x != null || ev.accelerationIncludingGravity.x != null) {
 		instructions.style.display = "block";
-		headphones.textContent = "Wear headphones.";
+		instructions.textContent = "Rotate to begin VR mode.  Headphones recommended.";
 		init();
 		document.addEventListener('visibilitychange', () => {
 			location.reload(); // hacky for now
 		});
 	}
 }
-
 window.addEventListener('devicemotion', onMotion, false);
+
+function setOrientationControls(e) {
+	if (!e.alpha) {
+		return;
+	}
+	controls = new THREE.DeviceOrientationControls(camera, true);
+	controls.connect();
+	controls.update();
+
+	if (window.innerWidth > window.innerHeight) {
+		instructions.style.display = 'none';
+		startButton.style.display = 'block';
+		window.removeEventListener('deviceorientation', setOrientationControls, true);
+	}
+}
+
+function start() {
+	fullscreen();
+	if (document.getElementById('phone'))
+		document.getElementById('phone').remove();
+
+	if (restart) {
+		currentDialog = 0;
+		dialogs.map((d) => d.start = 0);
+		nextClip = true;
+		bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+			bkgMusic.stop();
+			bkgMusic.isPlaying = false;		
+			bkgMusic.setBuffer( buffer );
+			bkgMusic.setLoop( true );
+			bkgMusic.play();
+		});
+	} else {
+		animate();
+		bkgMusic.loop = true;
+	}
+
+	bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+		bkgMusic.setBuffer( buffer );
+		bkgMusic.setLoop( true );
+		bkgMusic.play();
+	});
+
+	blocker.style.display = 'none';
+	
+	time = performance.now() + 4000; /* beginning delay */
+
+	linesPlayer.loadAnimation("drawings/empty.json", function() {
+		// turn on dialog.sides, off others
+		planes.map((p, i) => [0,1,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
+	});
+
+	/* for mobile to work  */
+	const source = listener.context.createBufferSource();
+	source.connect(listener.context.destination);
+	source.start();
+}
 
 function init() {
 
@@ -84,29 +141,14 @@ function init() {
 	stEffect = new THREE.StereoEffect(renderer);
 
 	camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-	// camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
-	// camera.position.set(0, 10, 0);
 	camera.position.z = 5;
 	camera.ySpeed = 0;
 	scene.add(camera);
 
-	var light = new THREE.AmbientLight( 0xffffff ); // soft white light
+	var light = new THREE.AmbientLight( 0xffffff );
 	scene.add( light );
-
-
-	function setOrientationControls(e) {
-		console.log(e);
-		if (!e.alpha) {
-			return;
-		}
-
-		controls = new THREE.DeviceOrientationControls(camera, true);
-		controls.connect();
-		controls.update();
-
-		element.addEventListener('click', fullscreen, false);
-		window.removeEventListener('deviceorientation', setOrientationControls, true);
-	}
+	
+	// set up device orientation controls
 	window.addEventListener('deviceorientation', setOrientationControls, true);
 
 	/* outside lines */
@@ -144,8 +186,9 @@ function init() {
 
 	/* blender */
 	mixer = new THREE.AnimationMixer( scene );
-	mixer2 = new THREE.AnimationMixer( scene );
 	let loader = new THREE.JSONLoader();
+
+	// load outline version
 	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
 		charMat.side = THREE.BackSide;
@@ -159,6 +202,8 @@ function init() {
 		mixer.clipAction(char2.geometry.animations[1], char2).play();
 		scene.add(char2);
 	});
+
+	// load black version
 	loader.load("models/char_toon.json", function(geometry, materials) {
 		var charMat = materials[0];
 		charMat.color.setHex(0x000000);
@@ -173,53 +218,96 @@ function init() {
 		mixer.clipAction(char.geometry.animations[1], char).play();
 		scene.add(char);
 
-		instructions.textContent = "Tap to play";
-		
-		function start() {
-
-			if (document.getElementById('phone'))
-				document.getElementById('phone').remove();
-
-			if (restart) {
-				currentDialog = 0;
-				dialogs.map((d) => d.start = 0);
-				nextClip = true;
-				bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
-					bkgMusic.stop();
-					bkgMusic.isPlaying = false;		
-					bkgMusic.setBuffer( buffer );
-					bkgMusic.setLoop( true );
-					bkgMusic.play();
-				});
-			} else {
-				animate();
-				bkgMusic.loop = true;
-			}
-
-			bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
-				bkgMusic.setBuffer( buffer );
-				bkgMusic.setLoop( true );
-				bkgMusic.play();
-			});
-
-			blocker.style.display = 'none';
-			
-			time = performance.now() + 4000; /* beginning delay */
-
-			linesPlayer.loadAnimation("drawings/empty.json", function() {
-				// turn on dialog.sides, off others
-				planes.map((p, i) => [0,1,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
-			});
-
-			/* for mobile to work  */
-			const source = listener.context.createBufferSource();
-			source.connect(listener.context.destination);
-			source.start();
-		}
-		instructions.addEventListener( 'touchend', start, false );
-		instructions.addEventListener( 'click', start, false );
-			
+		// when char is loaded
+		startButton.textContent = "Tap to play";
+		startButton.addEventListener( 'touchend', start, false );
+		startButton.addEventListener( 'click', start, false );
 	});
+}
+
+function charWalk() {
+	mixer.stopAllAction();
+	if (Math.random() > 0.3) {
+		const walk = walks[Math.floor(Math.random() * walks.length)];
+		mixer.clipAction(char.geometry.animations[walk], char).play();
+		mixer.clipAction(char2.geometry.animations[walk], char2).play();
+		if (char.position.distanceTo(camera.position) > 10) {
+			char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
+			char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
+		} else {
+			char.xSpeed = Cool.random(-0.02, 0.02);
+			char.zSpeed = Cool.random(-0.02, 0.03);
+		}
+		
+		camera.ySpeed = 0;
+		const vec = new THREE.Vector3(
+			char.position.x + char.xSpeed, 
+			char.position.y,
+			char.position.z + char.zSpeed
+		);
+		char.lookAt(vec);
+		char2.lookAt(vec);
+	} else {
+		const idle = idles[Math.floor(Math.random() * idles.length)];
+		mixer.clipAction(char.geometry.animations[idle], char).play();
+		mixer.clipAction(char2.geometry.animations[idle], char2).play();
+	}
+}
+
+function charTalk(dialog) {
+	nextClip = false; // waiting for end of current dialog
+	char.xSpeed = 0;
+	char.zSpeed = 0;
+	camera.ySpeed = Cool.random(-0.001, 0.001);
+	linesPlayer.loadAnimation(dialog.anim, function() {
+		// turn on dialog.sides, off others
+		planes.map((p, i) => dialog.sides.indexOf(i) != -1 ? p.visible = true : p.visible = false);
+	});
+	audioLoader.load( dialog.track, function(buffer) {
+		voiceSound.setBuffer(buffer);
+		voiceSound.setRefDistance(20);
+		voiceSound.play();
+	});
+
+	mixer.stopAllAction();
+	const talk = talks[Math.floor(Math.random() * talks.length)];
+	mixer.clipAction(char.geometry.animations[talk], char).play();
+	mixer.clipAction(char2.geometry.animations[talk], char2).play();
+
+	voiceSound.onEnded = function() {
+		voiceSound.isPlaying = false;
+		time = performance.now() + dialog.end;
+		nextClip = true;
+		const nextIndex = dialogs.indexOf(dialog) + 1;
+		if (nextIndex < dialogs.length)
+			currentDialog = nextIndex;
+		else 
+			end();
+	};
+}
+
+function end() {
+	bkgLoader.load("clips/end.mp3", function(buffer) {
+		bkgMusic.stop();
+		bkgMusic.isPlaying = false;
+		bkgMusic.setBuffer( buffer );
+		bkgMusic.setLoop( false );
+		bkgMusic.play();
+	});
+	setTimeout(function() { 
+		restart = true;
+		nextClip = false;
+		mixer.stopAllAction();
+		const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
+		mixer.clipAction(char.geometry.animations[endAnim], char).play();
+		mixer.clipAction(char2.geometry.animations[endAnim], char2).play();
+		char.xSpeed = 0;
+		char.zSpeed = 0;
+		linesPlayer.loadAnimation("drawings/big_dogs.json", function() {
+			// turn on dialog.sides, off others
+			planes.map((p, i) => [0,1,2,3,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
+		});
+	}, 2000);
 }
 
 /* 0: delay, 1: play, 2: end */
@@ -227,91 +315,12 @@ function animate() {
 	/* audio clips */
 	if (performance.now() > time && nextClip) {
 		let dialog = dialogs[currentDialog];
-		if (dialog.start == 1) {
-			nextClip = false;
-			char.xSpeed = 0;
-			char.zSpeed = 0;
-			camera.ySpeed = Cool.random(-0.001, 0.001);
-			linesPlayer.loadAnimation(dialog.anim, function() {
-				// turn on dialog.sides, off others
-				planes.map((p, i) => dialog.sides.indexOf(i) != -1 ? p.visible = true : p.visible = false);
-			});
-			audioLoader.load( dialog.track, function(buffer) {
-				voiceSound.setBuffer(buffer);
-				voiceSound.setRefDistance(20);
-				voiceSound.play();
-			});
-
-			mixer.stopAllAction();
-			mixer2.stopAllAction();
-			const talk = talks[Math.floor(Math.random() * talks.length)];
-			mixer.clipAction(char.geometry.animations[talk], char).play();
-			mixer.clipAction(char2.geometry.animations[talk], char2).play();
-			// https://stackoverflow.com/questions/35323062/detect-sound-is-ended-in-three-positionalaudio
-			voiceSound.onEnded = function() {
-				voiceSound.isPlaying = false;
-				time = performance.now() + dialog.end;
-				nextClip = true;
-				const nextIndex = dialogs.indexOf(dialog) + 1;
-				if (nextIndex < dialogs.length) {
-					currentDialog = nextIndex;
-				} else {
-					/* its over */
-					bkgLoader.load("clips/end.mp3", function(buffer) {
-						bkgMusic.stop();
-						bkgMusic.isPlaying = false;
-						bkgMusic.setBuffer( buffer );
-						bkgMusic.setLoop( false );
-						bkgMusic.play();
-					});
-					setTimeout(function() { 
-						restart = true;
-						nextClip = false;
-						mixer.stopAllAction();
-						mixer2.stopAllAction();
-						const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
-						mixer.clipAction(char.geometry.animations[endAnim], char).play();
-						mixer.clipAction(char2.geometry.animations[endAnim], char2).play();
-						char.xSpeed = 0;
-						char.zSpeed = 0;
-						linesPlayer.loadAnimation("drawings/big_dogs.json", function() {
-							// turn on dialog.sides, off others
-							planes.map((p, i) => [0,1,2,3,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
-						});
-					}, 2000);
-				}
-			};
+		if (dialog.started) {  // undefined at start
+			charTalk(dialog);
 		} else {
-			dialog.start = 1;
+			dialog.started = true;
 			time += dialog.delay;
-			mixer.stopAllAction();
-			mixer2.stopAllAction();
-
-			if (Math.random() > 0.3) {
-				const walk = walks[Math.floor(Math.random() * walks.length)];
-				mixer.clipAction(char.geometry.animations[walk], char).play();
-				mixer.clipAction(char2.geometry.animations[walk], char2).play();
-				if (char.position.distanceTo(camera.position) > 10) {
-					char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-					char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-				} else {
-					char.xSpeed = Cool.random(-0.02, 0.02);
-					char.zSpeed = Cool.random(-0.02, 0.03);
-				}
-				
-				camera.ySpeed = 0;
-				const vec = new THREE.Vector3(
-					char.position.x + char.xSpeed, 
-					char.position.y,
-					char.position.z + char.zSpeed
-				);
-				char.lookAt(vec);
-				char2.lookAt(vec);
-			} else {
-				const idle = idles[Math.floor(Math.random() * idles.length)];
-				mixer.clipAction(char.geometry.animations[idle], char).play();
-				mixer.clipAction(char2.geometry.animations[idle], char2).play();
-			}
+			charWalk();
 		}
 	}
 
@@ -357,3 +366,4 @@ function fullscreen() {
 }
 
 // https://stackoverflow.com/questions/28402100/wrong-value-for-window-innerwidth-during-onload-event-in-firefox-for-android
+// https://stackoverflow.com/questions/35323062/detect-sound-is-ended-in-three-positionalaudio
