@@ -82,4 +82,22 @@
 	- https://github.com/dataarts/3-dreams-of-black/blob/master/tests/shading/toon4.html
 	- try running this to see how it looks?
 	- this looks good but code is from three js r32, i think its too out of date for this
-	
+
+6.4.2018
+- try aframe - outline doesn't really look good
+- prevent daydream dialog from coming up?
+	- not happening
+
+6.5.2018
+- try toon shader and then move on
+- looks cool but not better than outline version ....
+- outline actually looks kinda bad .... cant see mouth at all
+- 
+
+difference between reg dogs and vr dogs
+- need ambient light for outline shader
+- (or point light for toon shader)
+- can't use outline effect - watching the thread to see if that gets added
+- two models for stem outline - second model has to follow first model
+- different phone graphic and series of instructions to get started
+- everything else the same?

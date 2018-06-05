@@ -47,7 +47,7 @@ let linesTexture; /* texture gets updated */
 let clock, mixer;
 let listener, voiceSound, voiceSource, audioLoader;
 let element, container;
-let char, char2;
+let char, char2, pointLight;
 
 // better than mobile check, includes ipad
 // if this is a phone allow user to start
@@ -77,48 +77,6 @@ function setOrientationControls(e) {
 		startButton.style.display = 'block';
 		window.removeEventListener('deviceorientation', setOrientationControls, true);
 	}
-}
-
-function start() {
-	fullscreen();
-	if (document.getElementById('phone'))
-		document.getElementById('phone').remove();
-
-	if (restart) {
-		currentDialog = 0;
-		dialogs.map((d) => d.start = 0);
-		nextClip = true;
-		bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
-			bkgMusic.stop();
-			bkgMusic.isPlaying = false;		
-			bkgMusic.setBuffer( buffer );
-			bkgMusic.setLoop( true );
-			bkgMusic.play();
-		});
-	} else {
-		animate();
-		bkgMusic.loop = true;
-	}
-
-	bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
-		bkgMusic.setBuffer( buffer );
-		bkgMusic.setLoop( true );
-		bkgMusic.play();
-	});
-
-	blocker.style.display = 'none';
-	
-	time = performance.now() + 4000; /* beginning delay */
-
-	linesPlayer.loadAnimation("drawings/empty.json", function() {
-		// turn on dialog.sides, off others
-		planes.map((p, i) => [0,1,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
-	});
-
-	/* for mobile to work  */
-	const source = listener.context.createBufferSource();
-	source.connect(listener.context.destination);
-	source.start();
 }
 
 function init() {
@@ -198,7 +156,7 @@ function init() {
 		char2 = new THREE.SkinnedMesh(geometry, charMat);
 		char2.position.set(0, -3, -2);
 		char2.scale.set(0.5,0.5,0.5);
-		char2.scale.multiplyScalar(1.01);
+		char2.scale.multiplyScalar(1.025);
 		mixer.clipAction(char2.geometry.animations[1], char2).play();
 		scene.add(char2);
 	});
@@ -209,6 +167,18 @@ function init() {
 		charMat.color.setHex(0x000000);
 		charMat.morphTargets = true;
 		charMat.skinning = true;
+
+		// var toonMat = new THREE.MeshToonMaterial({
+		// 	color: 0x000000,
+		// 	specular: 0xffffff,
+		// 	reflectivity: 100,
+		// 	shininess: 0
+		// });
+		// var gradientTexture = new THREE.TextureLoader().load( "/textures/gradient_3.png" );
+		// toonMat.gradientMap = gradientTexture;
+		// toonMat.morphTargets = true;
+		// toonMat.skinning = true;
+
 		char = new THREE.SkinnedMesh(geometry, charMat);
 		char.position.set(0, -3, -2);
 		char.scale.set(0.5,0.5,0.5);
@@ -218,6 +188,12 @@ function init() {
 		mixer.clipAction(char.geometry.animations[1], char).play();
 		scene.add(char);
 
+		// pointLight = new THREE.PointLight( 0xffffff, 50, 800, 1 );
+		// pointLight.position.set(char.position.x, char.position.y, char.position.z);
+		// pointLight.position.y += 100;
+		// pointLight.lookAt(char.position);
+		// scene.add( pointLight );
+
 		// when char is loaded
 		startButton.textContent = "Tap to play";
 		startButton.addEventListener( 'touchend', start, false );
@@ -225,36 +201,49 @@ function init() {
 	});
 }
 
-function charWalk() {
-	mixer.stopAllAction();
-	if (Math.random() > 0.3) {
-		const walk = walks[Math.floor(Math.random() * walks.length)];
-		mixer.clipAction(char.geometry.animations[walk], char).play();
-		mixer.clipAction(char2.geometry.animations[walk], char2).play();
-		if (char.position.distanceTo(camera.position) > 10) {
-			char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-			char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
-		} else {
-			char.xSpeed = Cool.random(-0.02, 0.02);
-			char.zSpeed = Cool.random(-0.02, 0.03);
-		}
-		
-		camera.ySpeed = 0;
-		const vec = new THREE.Vector3(
-			char.position.x + char.xSpeed, 
-			char.position.y,
-			char.position.z + char.zSpeed
-		);
-		char.lookAt(vec);
-		char2.lookAt(vec);
+function start() {
+	fullscreen();
+	if (document.getElementById('phone'))
+		document.getElementById('phone').remove();
+
+	if (restart) {
+		currentDialog = 0;
+		dialogs.map((d) => d.start = 0);
+		nextClip = true;
+		bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+			bkgMusic.stop();
+			bkgMusic.isPlaying = false;		
+			bkgMusic.setBuffer( buffer );
+			bkgMusic.setLoop( true );
+			bkgMusic.play();
+		});
 	} else {
-		const idle = idles[Math.floor(Math.random() * idles.length)];
-		mixer.clipAction(char.geometry.animations[idle], char).play();
-		mixer.clipAction(char2.geometry.animations[idle], char2).play();
+		animate();
+		bkgMusic.loop = true;
 	}
+
+	bkgLoader.load("clips/theme_7_80_12.mp3", function(buffer) {
+		bkgMusic.setBuffer( buffer );
+		bkgMusic.setLoop( true );
+		bkgMusic.play();
+	});
+
+	blocker.style.display = 'none';
+	
+	time = performance.now() + 4000; /* beginning delay */
+
+	linesPlayer.loadAnimation("drawings/empty.json", function() {
+		// turn on dialog.sides, off others
+		planes.map((p, i) => [0,1,4,5].indexOf(i) != -1 ? p.visible = true : p.visible = false);
+	});
+
+	/* for mobile to work  */
+	const source = listener.context.createBufferSource();
+	source.connect(listener.context.destination);
+	source.start();
 }
 
-function charTalk(dialog) {
+function talk(dialog) {
 	nextClip = false; // waiting for end of current dialog
 	char.xSpeed = 0;
 	char.zSpeed = 0;
@@ -286,6 +275,35 @@ function charTalk(dialog) {
 	};
 }
 
+function walk() {
+	mixer.stopAllAction();
+	if (Math.random() > 0.3) {
+		const walk = walks[Math.floor(Math.random() * walks.length)];
+		mixer.clipAction(char.geometry.animations[walk], char).play();
+		mixer.clipAction(char2.geometry.animations[walk], char2).play();
+		if (char.position.distanceTo(camera.position) > 10) {
+			char.xSpeed = char.position.x > camera.position.x ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
+			char.zSpeed = char.position.z > camera.position.z ? Cool.random(-0.02, 0) : Cool.random(0, 0.02);
+		} else {
+			char.xSpeed = Cool.random(-0.02, 0.02);
+			char.zSpeed = Cool.random(-0.02, 0.03);
+		}
+		
+		camera.ySpeed = 0;
+		const vec = new THREE.Vector3(
+			char.position.x + char.xSpeed, 
+			char.position.y,
+			char.position.z + char.zSpeed
+		);
+		char.lookAt(vec);
+		char2.lookAt(vec);
+	} else {
+		const idle = idles[Math.floor(Math.random() * idles.length)];
+		mixer.clipAction(char.geometry.animations[idle], char).play();
+		mixer.clipAction(char2.geometry.animations[idle], char2).play();
+	}
+}
+
 function end() {
 	bkgLoader.load("clips/end.mp3", function(buffer) {
 		bkgMusic.stop();
@@ -295,8 +313,14 @@ function end() {
 		bkgMusic.play();
 	});
 	setTimeout(function() { 
+		exitFullscreen();
 		restart = true;
 		nextClip = false;
+		blocker.style.display = 'block';
+		startButton.textContent = "Tap to play again";
+		instructions.textContent = "End of part 1";
+		instructions.style.display = 'block';
+		// document.getElementById("tramp").style.display = "block";
 		mixer.stopAllAction();
 		const endAnim = [1,2,3,4][Cool.randomInt(0,3)];
 		mixer.clipAction(char.geometry.animations[endAnim], char).play();
@@ -316,11 +340,11 @@ function animate() {
 	if (performance.now() > time && nextClip) {
 		let dialog = dialogs[currentDialog];
 		if (dialog.started) {  // undefined at start
-			charTalk(dialog);
+			talk(dialog);
 		} else {
 			dialog.started = true;
 			time += dialog.delay;
-			charWalk();
+			walk();
 		}
 	}
 
@@ -331,6 +355,8 @@ function animate() {
     char.position.z += char.zSpeed;
     char2.position.x = char.position.x;
     char2.position.z = char.position.z;
+    // pointLight.position.x = char.position.x;
+    // pointLight.position.z = char.position.z;
     camera.position.y += camera.ySpeed;
     controls.update();
    	// renderer.render(scene, camera);
@@ -363,6 +389,12 @@ function fullscreen() {
 	} else if (element.webkitRequestFullscreen) {
 		element.webkitRequestFullscreen();
 	}
+}
+
+function exitFullscreen() {
+	document.exitFullscreen = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen;
+	if (document.exitFullscreen)
+		document.exitFullscreen();
 }
 
 // https://stackoverflow.com/questions/28402100/wrong-value-for-window-innerwidth-during-onload-event-in-firefox-for-android
